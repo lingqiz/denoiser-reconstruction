@@ -25,8 +25,9 @@ class Denoiser(nn.Module):
         # network layers
         self.relu = nn.ReLU(inplace=True)
         self.conv_layers = nn.ModuleList([])
-        self.running_sd = nn.ParameterList([])
+        # batch norm
         self.gammas = nn.ParameterList([])
+        self.running_sd = []
 
         # add conv layers
         self.__add_layer(ch_in=self.im_channels, ch_out=self.num_kernels)
@@ -35,19 +36,34 @@ class Denoiser(nn.Module):
             self.__add_layer(ch_in=self.num_kernels, ch_out=self.num_kernels)
             
             # approximate Batch Normalization without the additive bias term
-            self.running_sd.append(
-                nn.Parameter(torch.ones(1, self.num_kernels, 1, 1), requires_grad=False))
+            self.running_sd.append(torch.ones(1, self.num_kernels, 1, 1))
+
             g = (torch.randn((1, self.num_kernels, 1, 1)) * (2. / 9. / 64.)).clamp_(-0.025, 0.025)
             self.gammas.append(nn.Parameter(g, requires_grad=True))
             
         # last layer without BN
         self.__add_layer(ch_in=self.num_kernels, ch_out=self.im_channels)
+        
+        # weight init         
+        self.__weight_init()
 
-    # helper function
+    # helper functions
     def __add_layer(self, ch_in, ch_out):
         self.conv_layers.append(
             nn.Conv2d(ch_in, ch_out, self.kernel_size, padding=self.padding, bias=False))
 
+    def __weight_init(self):
+
+        def init_fun(m):
+            classname = m.__class__.__name__
+            if classname.find('Conv') != -1:
+                nn.init.kaiming_normal_(m.weight.data, a=0, mode='fan_in')
+            elif classname.find('Linear') != -1:
+                nn.init.kaiming_normal(m.weight.data, a=0, mode='fan_in')
+
+        self.apply(init_fun)
+
+    # forward function
     def forward(self, x):
         # loop through all the layers
         for idx, conv in zip(range(self.num_layers), self.conv_layers):
