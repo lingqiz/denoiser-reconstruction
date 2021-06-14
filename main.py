@@ -5,7 +5,7 @@ import argparse
 
 from models.denoiser import Denoiser
 
-# argugment parser
+# run argument parser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
     parser.add_argument('--mode',
@@ -13,7 +13,7 @@ def args():
                         type=str,
                         help='script mode')
 
-    # Arguments for network training
+    # arguments for network training
     parser.add_argument('--batch_size', 
                         type=int, default=64,
                         help='input batch size for training (default: 64)')
@@ -22,15 +22,13 @@ def args():
                         default=100,
                         help='number of epochs to train (default: 100)')
     
-    # Training dataset
+    # training dataset
     parser.add_argument('--patch_size', 
                         default= (64, 64))    
     parser.add_argument('--scales', 
-                        default=[1, .8, .6, .4])
-    parser.add_argument('--noise_level_range', 
-                        default= [0,100])
+                        default=[1, 0.75, 0.5, 0.25])    
     
-    # Network architecture
+    # network architecture
     parser.add_argument('--padding', 
                         default= 1)
     parser.add_argument('--kernel_size', 

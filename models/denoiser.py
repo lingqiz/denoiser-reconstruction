@@ -8,6 +8,8 @@ class Denoiser(nn.Module):
 
     The additive bias term is removed from the network, 
     including both the convolutional and batch normalization layers.
+
+    See https://arxiv.org/abs/1906.05478
     """ 
 
     def __init__(self, args):
