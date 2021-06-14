@@ -5,6 +5,7 @@ import argparse
 
 from models.denoiser import Denoiser
 
+# argugment parser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
     parser.add_argument('--mode',
@@ -38,7 +39,7 @@ def args():
                         default= 64)
     parser.add_argument('--num_layers', 
                         default= 20)
-    parser.add_argument('--num_channels', 
+    parser.add_argument('--im_channels', 
                         default= 3)
 
     # parse arguments and check

@@ -10,10 +10,6 @@ class Denoiser(nn.Module):
     including both the convolutional and batch normalization layers.
     """ 
 
-    def __add_layer(self):
-        self.conv_layers.append(
-            nn.Conv2d(self.num_channels,self.num_kernels, self.kernel_size, padding=self.padding, bias=False))
-
     def __init__(self, args):
         super().__init__()
         
@@ -22,18 +18,19 @@ class Denoiser(nn.Module):
         self.num_kernels = args.num_kernels
         self.kernel_size = args.kernel_size
         self.num_layers = args.num_layers
-        self.num_channels = args.num_channels
+        self.im_channels = args.im_channels
 
+        # network layers
         self.relu = nn.ReLU(inplace=True)
         self.conv_layers = nn.ModuleList([])
         self.running_sd = nn.ParameterList([])
         self.gammas = nn.ParameterList([])
 
         # add conv layers
-        self.__add_layer()        
+        self.__add_layer(ch_in=self.im_channels, ch_out=self.num_kernels)
 
         for idx in range(self.num_layers - 2):
-            self.__add_layer()
+            self.__add_layer(ch_in=self.num_kernels, ch_out=self.num_kernels)
             
             # approximate Batch Normalization without the additive bias term
             self.running_sd.append(
@@ -42,10 +39,16 @@ class Denoiser(nn.Module):
             self.gammas.append(nn.Parameter(g, requires_grad=True))
             
         # last layer without BN
-        self.__add_layer()
+        self.__add_layer(ch_in=self.num_kernels, ch_out=self.im_channels)
+
+    # helper function
+    def __add_layer(self, ch_in, ch_out):
+        self.conv_layers.append(
+            nn.Conv2d(ch_in, ch_out, self.kernel_size, padding=self.padding, bias=False))
 
     def forward(self, x):
-        for idx, conv in zip(range(self.num_layers, self.conv_layers)):
+        # loop through all the layers
+        for idx, conv in zip(range(self.num_layers), self.conv_layers):
             if idx == self.num_layers - 1:
                 return conv(x)
 
