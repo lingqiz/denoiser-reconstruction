@@ -9,7 +9,7 @@ from models.denoiser import Denoiser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
     parser.add_argument('--mode',
-                        required=True,
+                        required=False,
                         type=str,
                         help='script mode')
 
@@ -21,11 +21,13 @@ def args():
                         type=int, 
                         default=100,
                         help='number of epochs to train (default: 100)')
+    parser.add_argument('--noise_level',
+                        default=100)
     
     # training dataset
     parser.add_argument('--patch_size', 
-                        default= (64, 64))    
-    parser.add_argument('--scales', 
+                        default= (64, 64))
+    parser.add_argument('--scales',
                         default=[1, 0.75, 0.5, 0.25])    
     
     # network architecture
