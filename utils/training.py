@@ -15,22 +15,22 @@ def train_denoiser(train_set, model, args):
     for epoch in range(args.n_epoch):
         print('epoch %d/%d' % (epoch, args.n_epoch))
 
+        total_loss = 0.0
         for _, batch in enumerate(train_set, 0):
             optimizer.zero_grad()
             
             # images in torch are in [c, h, w] format
-            batch = batch.permute(0, 3, 1, 2).contiguous()
-            noise = torch.normal(0, args.noise_level/255.0, batch.size()) 
+            batch = batch.permute(0, 3, 1, 2).contiguous().to(device)
+            noise = torch.normal(0, args.noise_level / 255.0, batch.size()).to(device)
             noisy_img = batch + noise
-
-            noisy_img.requires_grad = True
-            noise.requires_grad = True
-
-            noisy_img = noisy_img.to(device)
-            noise = noise.to(device)
 
             # the network takes noisy images as input and returns residual
             residual = model(noisy_img)
+
             loss = criterion(residual, noise)
             loss.backward()
+            total_loss += loss.item()
+
             optimizer.step()
+
+        print('total loss %.3f' % total_loss)
