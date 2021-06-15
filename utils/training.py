@@ -1,4 +1,5 @@
 from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim import Adam
 import torch.nn as nn
 import torch
@@ -8,6 +9,7 @@ def train_denoiser(train_set, model, args):
 
     model = model.train().to(device)
     optimizer = Adam(model.parameters())
+    scheduler = ExponentialLR(optimizer, gamma=0.5)
     criterion = nn.MSELoss()
 
     # training dataset
@@ -34,6 +36,7 @@ def train_denoiser(train_set, model, args):
 
             optimizer.step()
 
-        print('total loss %.3f' % total_loss)
+        scheduler.step()
+        print('total training loss %.3f' % total_loss)
     
     return model.eval().cpu()

@@ -32,7 +32,7 @@ def args():
     parser.add_argument('--patch_size', 
                         default= (64, 64))
     parser.add_argument('--scales',
-                        default=[0.90, 0.75, 0.50, 0.25])    
+                        default=[0.90, 0.60, 0.40, 0.20])    
     
     # network architecture
     parser.add_argument('--padding', 
