@@ -33,7 +33,7 @@ class ISLVRC():
         self.test_folder = './utilities/islvrc/test'
         self.test_images = []
         self.linear = linear
-                
+        
         self.train_patches = []
         for file_name in os.listdir(self.train_folder):
             image = plt.imread(os.path.join(self.train_folder, file_name))
@@ -42,7 +42,7 @@ class ISLVRC():
                 for sample in self.sample_patch(image, args.scales, args.patch_size):
                     if sample.mean() >= 0.05:
                         self.train_patches.append(sample)
-
+                        
         self.train_patches = np.stack(self.train_patches)
         
         for file_name in os.listdir(self.test_folder):
