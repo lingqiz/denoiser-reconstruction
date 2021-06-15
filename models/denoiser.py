@@ -4,7 +4,8 @@ import numpy as np
 
 class Denoiser(nn.Module):
     """
-    A simple CNN for image denoising
+    A simple CNN for image denoising.
+    The network takes noisy images as input and returns residual.
 
     The additive bias term is removed from the network, 
     including both the convolutional and batch normalization layers.
@@ -26,8 +27,9 @@ class Denoiser(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.conv_layers = nn.ModuleList([])
         # batch norm
-        self.gammas = nn.ParameterList([])
-        self.running_sd = []
+        self.gammas = nn.ParameterList([])        
+        self.register_buffer('running_sd', 
+            torch.empty([self.num_layers - 2, 1, self.num_kernels, 1, 1]))
 
         # add conv layers
         self.__add_layer(ch_in=self.im_channels, ch_out=self.num_kernels)
@@ -36,16 +38,16 @@ class Denoiser(nn.Module):
             self.__add_layer(ch_in=self.num_kernels, ch_out=self.num_kernels)
             
             # approximate Batch Normalization without the additive bias term
-            self.running_sd.append(torch.ones(1, self.num_kernels, 1, 1))
+            self.running_sd[idx, ] = torch.ones(1, self.num_kernels, 1, 1)
 
             g = (torch.randn((1, self.num_kernels, 1, 1)) * (2. / 9. / 64.)).clamp_(-0.025, 0.025)
             self.gammas.append(nn.Parameter(g, requires_grad=True))
-            
+                        
         # last layer without BN
         self.__add_layer(ch_in=self.num_kernels, ch_out=self.im_channels)
         
         # weight init         
-        self.__weight_init()
+        self.__weight_init()        
 
     # helper functions
     def __add_layer(self, ch_in, ch_out):
@@ -76,7 +78,7 @@ class Denoiser(nn.Module):
                 sd_x = torch.sqrt(x.var(dim=(0, 2, 3), keepdim=True, unbiased=False) + 1e-05)
                 if self.training:                    
                     x = x / sd_x.expand_as(x)
-                    self.running_sd[idx - 1].data = (1 - .1) * self.running_sd[idx - 1].data + .1 * sd_x
+                    self.running_sd[idx - 1] = (1 - 0.1) * self.running_sd[idx - 1] + 0.1 * sd_x
                     x = x * self.gammas[idx - 1].expand_as(x)
                 else:
                     x = x / self.running_sd[idx - 1].expand_as(x)
