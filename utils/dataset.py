@@ -29,8 +29,8 @@ class ISLVRC():
 
     # read images under the islvrc directory
     def __init__(self, args, linear=False):
-        self.train_folder = './utilities/islvrc/train'
-        self.test_folder = './utilities/islvrc/test'
+        self.train_folder = './utils/islvrc/train'
+        self.test_folder = './utils/islvrc/test'
         self.test_images = []
         self.linear = linear
         
