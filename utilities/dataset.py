@@ -13,8 +13,9 @@ class ISLVRC():
     def sample_patch(image, scales, patch_size):
         samples = []
         for scale in scales:
+            # cv2 resize (width, height)
             resized = cv2.resize(image, 
-                    (int(image.shape[0] * scale), int(image.shape[1] * scale)))
+                    (int(image.shape[1] * scale), int(image.shape[0] * scale)))
             
             ih, iw = (resized.shape[0], resized.shape[1])
             ph, pw = patch_size
@@ -39,14 +40,15 @@ class ISLVRC():
             if len(image.shape) == 3:
                 image = self.to_float(image).astype(np.single)
                 for sample in self.sample_patch(image, args.scales, args.patch_size):
-                    self.train_patches.append(sample)                    
+                    if sample.mean() >= 0.05:
+                        self.train_patches.append(sample)
 
         self.train_patches = np.stack(self.train_patches)
         
         for file_name in os.listdir(self.test_folder):
             image = plt.imread(os.path.join(self.test_folder, file_name))
             if len(image.shape) == 3:
-                image = self.to_float(image)
+                image = self.to_float(image).astype(np.single)
                 self.test_images.append(image)
 
     # convert to float point images
