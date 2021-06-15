@@ -35,3 +35,5 @@ def train_denoiser(train_set, model, args):
             optimizer.step()
 
         print('total loss %.3f' % total_loss)
+    
+    return model.eval().cpu()
