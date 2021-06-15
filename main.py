@@ -8,6 +8,10 @@ from models.denoiser import Denoiser
 # run argument parser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
+    parser.add_argument('-f',
+                        required=False,
+                        type=str,
+                        help='jupyter notebook')
     parser.add_argument('--mode',
                         required=False,
                         type=str,
@@ -28,7 +32,7 @@ def args():
     parser.add_argument('--patch_size', 
                         default= (64, 64))
     parser.add_argument('--scales',
-                        default=[1, 0.75, 0.5, 0.25])    
+                        default=[0.8, 0.6, 0.4, 0.2])    
     
     # network architecture
     parser.add_argument('--padding', 
