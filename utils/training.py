@@ -25,6 +25,7 @@ def train_denoiser(train_set, model, args):
             noisy_img = batch + noise
 
             # the network takes noisy images as input and returns residual
+            # i.e., skip connections
             residual = model(noisy_img)
 
             loss = criterion(residual, noise)
