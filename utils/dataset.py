@@ -34,6 +34,8 @@ def gamma_correct(image):
     for idx in range(image.shape[-1]):
         image[:, :, idx] = np.interp(image[:, :, idx], 
             GAMMA_TABLE[:, idx], np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]))
+    
+    return image
 
 # test image denoising model
 def test_model(test_set, model, noise, device):
