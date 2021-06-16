@@ -51,9 +51,9 @@ def train_denoiser(train_set, test_set, model, args):
         # print some diagnostic information
         print('epoch %d/%d' % (epoch, args.n_epoch))
 
-        print('total training loss %.3f' % total_loss)
-        print('test psnr in %.3f, out %.3f', (psnr[0], psnr[1]))
-        
+        print('total training loss %.2f' % total_loss)
+        print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
+
         print('time elapsed: %s' % str(datetime.timedelta(
             seconds=time.time() - start_time))[:-4])
 
