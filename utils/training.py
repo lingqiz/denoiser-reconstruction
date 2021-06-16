@@ -9,16 +9,18 @@ def train_denoiser(train_set, model, args):
 
     model = model.train().to(device)
     optimizer = Adam(model.parameters())
-    scheduler = ExponentialLR(optimizer, gamma=0.5)
+    scheduler = ExponentialLR(optimizer, gamma=args.lr_decay)
     criterion = nn.MSELoss()
 
     # training dataset
-    train_set = DataLoader(train_set, batch_size=args.batch_size, shuffle=True)
+    train_set = DataLoader(train_set, batch_size=args.batch_size, 
+                shuffle=True, num_workers=4, pin_memory=True)
+
     for epoch in range(args.n_epoch):
         print('epoch %d/%d' % (epoch, args.n_epoch))
 
         total_loss = 0.0
-        for _, batch in enumerate(train_set, 0):
+        for _, batch in enumerate(train_set):
             optimizer.zero_grad()
             
             # images in torch are in [c, h, w] format
@@ -26,15 +28,15 @@ def train_denoiser(train_set, model, args):
             noise = torch.normal(0, args.noise_level / 255.0, batch.size()).to(device)
             noisy_img = batch + noise
 
-            # the network takes noisy images as input and returns residual
-            # i.e., skip connections
+            # the network takes noisy images as input 
+            # and returns residual (i.e., skip connections)
             residual = model(noisy_img)
 
             loss = criterion(residual, noise)
             loss.backward()
             total_loss += loss.item()
 
-            optimizer.step()
+            optimizer.step()            
 
         scheduler.step()
         print('total training loss %.3f' % total_loss)
