@@ -1,4 +1,4 @@
-import torch, torch.nn as nn, time, datetime
+import torch, torch.nn as nn, time, datetime, random
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader
@@ -25,10 +25,13 @@ def train_denoiser(train_set, test_set, model, args):
 
         for _, batch in enumerate(train_set):
             optimizer.zero_grad()
+
+            # choose a noise level for the batch
+            noise_level = random.randint(args.noise_level[0], args.noise_level[1])            
             
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(device)
-            noise = torch.normal(0, args.noise_level / 255.0, size=batch.size()).to(device)
+            noise = torch.normal(0, noise_level / 255.0, size=batch.size()).to(device)
             noisy_img = batch + noise
 
             # auto mixed precision forward pass
@@ -46,7 +49,7 @@ def train_denoiser(train_set, test_set, model, args):
             scaler.update()
 
         scheduler.step()
-        psnr = test_model(test_set, model, noise=50.0, device=device)[0].mean(axis=1)
+        psnr = test_model(test_set, model, noise=100.0, device=device)[0].mean(axis=1)
 
         # print some diagnostic information
         print('epoch %d/%d' % (epoch, args.n_epoch))

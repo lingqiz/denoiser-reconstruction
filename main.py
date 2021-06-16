@@ -24,7 +24,7 @@ def args():
                         default=25,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
-                        default=100)
+                        default=[1, 100])
     parser.add_argument('--lr',
                         default=2e-3)
     parser.add_argument('--lr_decay',
