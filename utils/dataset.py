@@ -20,6 +20,7 @@ def sample_patch(image, scales, patch_size):
 
     return samples
 
+# test image denoising model
 def test_model(test_set, model, noise, device):
     model.eval()
 
@@ -33,6 +34,7 @@ def test_model(test_set, model, noise, device):
     denoise_set = np.clip((test_noise - 
         residual.detach().cpu()).permute(0, 2, 3, 1).numpy(), 0, 1)
 
+    # calculate the PSNR for each test images
     psnr = np.zeros([2, test_torch.shape[0]])
     for idx, test, noisy, denoise in \
         zip(range(test_torch.shape[0]), test_set, noise_set, denoise_set):
