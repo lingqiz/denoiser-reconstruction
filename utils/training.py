@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 def train_denoiser(train_set, model, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    model = model.train().to(device)
+    model = model.to(device)
     optimizer = Adam(model.parameters())
     scheduler = ExponentialLR(optimizer, gamma=args.lr_decay)
     criterion = nn.MSELoss()
@@ -18,14 +18,16 @@ def train_denoiser(train_set, model, args):
     for epoch in range(args.n_epoch):
         print('epoch: %d/%d' % (epoch, args.n_epoch))
 
+        model.train()
         total_loss = 0.0
         start_time = time.time()
+
         for _, batch in enumerate(train_set):
             optimizer.zero_grad()
             
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(device)
-            noise = torch.normal(0, args.noise_level / 255.0, batch.size()).to(device)
+            noise = torch.normal(0, args.noise_level / 255.0, size=batch.size()).to(device)
             noisy_img = batch + noise
 
             # the network takes noisy images as input 

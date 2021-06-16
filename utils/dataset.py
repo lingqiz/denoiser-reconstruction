@@ -1,4 +1,4 @@
-import os, cv2, numpy as np
+import os, cv2, torch, numpy as np
 import matplotlib.pylab as plt
 from skimage.metrics import peak_signal_noise_ratio
 
@@ -21,17 +21,25 @@ def sample_patch(image, scales, patch_size):
     return samples
 
 def test_model(test_set, model, noise, device):
+    model.eval()
+
     test_torch = torch.from_numpy(test_set).permute(0, 3, 1, 2).contiguous()
-    test_noise = test_torch + torch.normal(0, noise / 255.0, test_torch.size())
+    test_noise = test_torch + torch.normal(0, noise / 255.0, size=test_torch.size())
 
     with torch.no_grad():
         residual = model(test_noise.to(device))
     
-    denoised = np.clip((test_noise - 
+    noise_set = np.clip(test_noise.permute(0, 2, 3, 1).numpy(), 0, 1)
+    denoise_set = np.clip((test_noise - 
         residual.detach().cpu()).permute(0, 2, 3, 1).numpy(), 0, 1)
 
-    
-    
+    psnr = np.zeros([2, test_torch.shape[0]])
+    for idx, test, noisy, denoise in \
+        zip(range(test_torch.shape[0]), test_set, noise_set, denoise_set):
+        psnr[0, idx] = peak_signal_noise_ratio(test, noisy)
+        psnr[1, idx] = peak_signal_noise_ratio(test, denoise)
+
+    return (psnr, test_set, noise_set, denoise_set)
 
 class ISLVRC():
     """
