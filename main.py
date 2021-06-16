@@ -1,7 +1,7 @@
-import numpy as np
-import torch, torch.nn as nn 
-import argparse
+import argparse, torch
 from models.denoiser import Denoiser
+from utils.training import train_denoiser
+from utils.dataset import ISLVRC
 
 # run argument parser
 def args():
@@ -21,7 +21,7 @@ def args():
                         help='input batch size for training')
     parser.add_argument('--n_epoch', 
                         type=int, 
-                        default=25,
+                        default=20,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
                         default=[1, 100])
@@ -29,6 +29,8 @@ def args():
                         default=2e-3)
     parser.add_argument('--lr_decay',
                         default=0.8)
+    parser.add_argument('--save_dir',
+                        './assets/model_para.pt')
     
     # training dataset
     parser.add_argument('--patch_size', 
@@ -53,3 +55,26 @@ def args():
     return args
 
 args = args()
+
+def train(args):
+    # load dataset
+    islvrc = ISLVRC(args)
+
+    # denoiser CNN
+    model = Denoiser(args)
+    print('number of parameters is ', 
+        sum(p.numel() for p in model.parameters()))
+
+    # model training 
+    model = train_denoiser(islvrc.train_set(), 
+            islvrc.test_set(), model, args)
+
+    # save trained model
+    torch.save(model.state_dict(), args.save_dir)
+
+if __name__ == '__main__':
+    if args.mode == 'train':
+        train(args)
+
+    if args.mode == 'test':
+        pass
