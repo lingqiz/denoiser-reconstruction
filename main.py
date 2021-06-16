@@ -6,6 +6,8 @@ from utils.dataset import ISLVRC
 # run argument parser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
+    
+    # option/mode for the script
     parser.add_argument('-f',
                         required=False,
                         type=str,
@@ -20,15 +22,17 @@ def args():
                         type=int, default=128,
                         help='input batch size for training')
     parser.add_argument('--n_epoch', 
-                        type=int, 
-                        default=20,
+                        type=int,
+                        default=50,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
                         default=[1, 100])
     parser.add_argument('--lr',
                         default=2e-3)
     parser.add_argument('--lr_decay',
-                        default=0.8)
+                        default=0.925)
+    parser.add_argument('--multi_gpu',
+                        default=False)
     parser.add_argument('--save_dir',
                         default='./assets/model_para.pt')
     
@@ -37,6 +41,8 @@ def args():
                         default= (64, 64))
     parser.add_argument('--scales',
                         default=[1.0, 0.75, 0.50, 0.25])
+    parser.add_argument('--linear',
+                        default=True)
     
     # network architecture
     parser.add_argument('--padding', 
@@ -58,6 +64,7 @@ args = args()
 
 def train(args):
     # load dataset
+    print('load training data')
     islvrc = ISLVRC(args)
 
     # denoiser CNN
@@ -77,6 +84,5 @@ def train(args):
 if __name__ == '__main__':
     if args.mode == 'train':
         train(args)
-
     if args.mode == 'test':
         pass

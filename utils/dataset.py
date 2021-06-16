@@ -1,4 +1,4 @@
-import os, cv2, torch, numpy as np
+import os, cv2, torch, scipy.io, numpy as np
 import matplotlib.pylab as plt
 from skimage.metrics import peak_signal_noise_ratio
 
@@ -19,6 +19,21 @@ def sample_patch(image, scales, patch_size):
                     samples.append(resized[x:x+ph, y:y+pw, :])
 
     return samples
+
+# image gamma linear and correction
+GAMMA_TABLE = scipy.io.loadmat('./assets/gamma.mat')['gammaTable']
+
+def gamma_linear(image):
+    for idx in range(image.shape[-1]):
+        image[:, :, idx] = np.interp(image[:, :, idx], 
+            np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]), GAMMA_TABLE[:, idx])
+    
+    return image
+
+def gamma_correct(image):
+    for idx in range(image.shape[-1]):
+        image[:, :, idx] = np.interp(image[:, :, idx], 
+            GAMMA_TABLE[:, idx], np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]))
 
 # test image denoising model
 def test_model(test_set, model, noise, device):
@@ -49,11 +64,11 @@ class ISLVRC():
     """
 
     # read images under the islvrc directory
-    def __init__(self, args, linear=False):
+    def __init__(self, args):
         self.train_folder = './utils/islvrc/train'
         self.test_folder = './utils/islvrc/test'
         self.test_images = []
-        self.linear = linear
+        self.linear = args.linear
         
         # sample individual patches
         self.train_patches = []
@@ -85,8 +100,7 @@ class ISLVRC():
     # convert to float point images
     def to_float(self, image):
         if self.linear:
-            # linearization with display gamma table
-            pass
+            return gamma_linear(image / 255.0)
         else:
             return image / 255.0
 
