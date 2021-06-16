@@ -26,8 +26,9 @@ class Denoiser(nn.Module):
         # network layers
         self.relu = nn.ReLU(inplace=True)
         self.conv_layers = nn.ModuleList([])
+        
         # batch norm
-        self.gammas = nn.ParameterList([])        
+        self.gammas = nn.ParameterList([])
         self.register_buffer('running_sd', 
             torch.empty([self.num_layers - 2, 1, self.num_kernels, 1, 1]))
 
@@ -46,8 +47,8 @@ class Denoiser(nn.Module):
         # last layer without BN
         self.__add_layer(ch_in=self.num_kernels, ch_out=self.im_channels)
         
-        # weight init         
-        self.__weight_init()        
+        # weight init
+        self.__weight_init()
 
     # helper functions
     def __add_layer(self, ch_in, ch_out):
@@ -72,7 +73,7 @@ class Denoiser(nn.Module):
             if idx == self.num_layers - 1:
                 return conv(x)
 
-            x = conv(x)            
+            x = conv(x)
             if idx > 0:
                 # apply BN
                 sd_x = torch.sqrt(x.var(dim=(0, 2, 3), keepdim=True, unbiased=False) + 1e-05)
@@ -85,4 +86,3 @@ class Denoiser(nn.Module):
                     x = x * self.gammas[idx - 1].expand_as(x)
 
             x = self.relu(x)
-                
