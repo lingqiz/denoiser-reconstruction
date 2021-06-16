@@ -34,13 +34,13 @@ def args():
     parser.add_argument('--patch_size', 
                         default= (64, 64))
     parser.add_argument('--scales',
-                        default=[0.90, 0.60, 0.40, 0.20])    
+                        default=[0.50, 0.40, 0.20])
     
     # network architecture
     parser.add_argument('--padding', 
                         default= 1)
     parser.add_argument('--kernel_size', 
-                        default= 3)                        
+                        default= 3)
     parser.add_argument('--num_kernels', 
                         default= 64)
     parser.add_argument('--num_layers', 

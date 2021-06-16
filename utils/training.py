@@ -1,10 +1,7 @@
-from torch.utils.data import DataLoader
-from torch.optim.lr_scheduler import ExponentialLR
+import torch, torch.nn as nn, time, datetime
 from torch.optim import Adam
-import torch.nn as nn
-import torch
-import time
-import datetime
+from torch.optim.lr_scheduler import ExponentialLR
+from torch.utils.data import DataLoader
 
 def train_denoiser(train_set, model, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -45,6 +42,6 @@ def train_denoiser(train_set, model, args):
 
         print('total training loss: %.3f' % total_loss)
         print('time elapsed: %s' % str(datetime.timedelta(
-            seconds=time.time() - start_time)))
-    
+            seconds=time.time() - start_time))[:-4])
+
     return model.eval().cpu()
