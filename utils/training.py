@@ -6,9 +6,12 @@ from torch.cuda.amp import autocast, GradScaler
 from utils.dataset import test_model
 
 def train_denoiser(train_set, test_set, model, args):
+    # training with gpu/multi-gpu
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
     model = model.to(device)
+
     optimizer = Adam(model.parameters(), lr=args.lr)
     scheduler = ExponentialLR(optimizer, gamma=args.lr_decay)
     criterion = nn.MSELoss()
