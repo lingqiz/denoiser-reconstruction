@@ -23,12 +23,12 @@ def args():
                         help='input batch size for training (default: 128)')
     parser.add_argument('--n_epoch', 
                         type=int, 
-                        default=15,
-                        help='number of epochs to train (default: 15)')
+                        default=20,
+                        help='number of epochs to train (default: 20)')
     parser.add_argument('--noise_level',
                         default=100)
     parser.add_argument('--lr_decay',
-                        default=0.6)
+                        default=0.75)
     
     # training dataset
     parser.add_argument('--patch_size', 
