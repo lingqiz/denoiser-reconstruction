@@ -65,11 +65,13 @@ def train(args):
     print('number of parameters is ', 
         sum(p.numel() for p in model.parameters()))
 
-    # model training 
+    # model training
+    print('start training')
     model = train_denoiser(islvrc.train_set(), 
             islvrc.test_set(), model, args)
 
     # save trained model
+    print('save model parameters')
     torch.save(model.state_dict(), args.save_dir)
 
 if __name__ == '__main__':
