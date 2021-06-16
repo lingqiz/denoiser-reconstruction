@@ -25,8 +25,10 @@ def args():
                         help='number of epochs to train (default: 20)')
     parser.add_argument('--noise_level',
                         default=100)
+    parser.add_argument('--lr',
+                        default=2e-3)
     parser.add_argument('--lr_decay',
-                        default=0.75)
+                        default=0.8)
     
     # training dataset
     parser.add_argument('--patch_size', 
