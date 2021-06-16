@@ -3,6 +3,8 @@ from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim import Adam
 import torch.nn as nn
 import torch
+import time
+import datetime
 
 def train_denoiser(train_set, model, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -17,9 +19,10 @@ def train_denoiser(train_set, model, args):
                 shuffle=True, num_workers=4, pin_memory=True)
 
     for epoch in range(args.n_epoch):
-        print('epoch %d/%d' % (epoch, args.n_epoch))
+        print('epoch: %d/%d' % (epoch, args.n_epoch))
 
         total_loss = 0.0
+        start_time = time.time()
         for _, batch in enumerate(train_set):
             optimizer.zero_grad()
             
@@ -36,9 +39,12 @@ def train_denoiser(train_set, model, args):
             loss.backward()
             total_loss += loss.item()
 
-            optimizer.step()            
+            optimizer.step()
 
         scheduler.step()
-        print('total training loss %.3f' % total_loss)
+
+        print('total training loss: %.3f' % total_loss)
+        print('time elapsed: %s' % str(datetime.timedelta(
+            seconds=time.time() - start_time)))
     
     return model.eval().cpu()
