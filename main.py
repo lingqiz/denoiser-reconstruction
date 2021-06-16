@@ -30,7 +30,7 @@ def args():
     parser.add_argument('--lr_decay',
                         default=0.8)
     parser.add_argument('--save_dir',
-                        './assets/model_para.pt')
+                        default='./assets/model_para.pt')
     
     # training dataset
     parser.add_argument('--patch_size', 
