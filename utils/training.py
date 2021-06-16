@@ -2,10 +2,10 @@ import torch, torch.nn as nn, time, datetime
 from torch.optim import Adam
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader
-from torch.cuda.amp import autocast
-from torch.cuda.amp import GradScaler
+from torch.cuda.amp import autocast, GradScaler
+from utils.dataset import test_model
 
-def train_denoiser(train_set, model, args):
+def train_denoiser(train_set, test_set, model, args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     model = model.to(device)
@@ -19,8 +19,6 @@ def train_denoiser(train_set, model, args):
                 shuffle=True, num_workers=8, pin_memory=True)
 
     for epoch in range(args.n_epoch):
-        print('epoch: %d/%d' % (epoch, args.n_epoch))
-
         model.train()
         total_loss = 0.0
         start_time = time.time()
@@ -43,13 +41,19 @@ def train_denoiser(train_set, model, args):
             total_loss += loss.item()
 
             # backward with gradient scaling
-            scaler.scale(loss).backward()            
+            scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
 
         scheduler.step()
+        psnr = test_model(test_set, model, noise=50.0, device=device)[0].mean(axis=1)
 
-        print('total training loss: %.3f' % total_loss)
+        # print some diagnostic information
+        print('epoch %d/%d' % (epoch, args.n_epoch))
+
+        print('total training loss %.3f' % total_loss)
+        print('test psnr in %.3f, out %.3f', (psnr[0], psnr[1]))
+        
         print('time elapsed: %s' % str(datetime.timedelta(
             seconds=time.time() - start_time))[:-4])
 

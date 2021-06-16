@@ -18,11 +18,11 @@ def args():
     # arguments for network training
     parser.add_argument('--batch_size', 
                         type=int, default=128,
-                        help='input batch size for training (default: 128)')
+                        help='input batch size for training')
     parser.add_argument('--n_epoch', 
                         type=int, 
-                        default=20,
-                        help='number of epochs to train (default: 20)')
+                        default=25,
+                        help='number of epochs to train')
     parser.add_argument('--noise_level',
                         default=100)
     parser.add_argument('--lr',
@@ -34,7 +34,7 @@ def args():
     parser.add_argument('--patch_size', 
                         default= (64, 64))
     parser.add_argument('--scales',
-                        default=[0.50, 0.40, 0.20])
+                        default=[0.90, 0.60, 0.40, 0.20])
     
     # network architecture
     parser.add_argument('--padding', 
