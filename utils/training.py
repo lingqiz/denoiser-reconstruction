@@ -56,7 +56,7 @@ def train_denoiser(train_set, test_set, model, args):
         psnr = test_model(test_set, model, noise=100.0, device=device)[0].mean(axis=1)
 
         # print some diagnostic information
-        print('epoch %d/%d' % (epoch, args.n_epoch))
+        print('epoch %d/%d' % (epoch + 1, args.n_epoch))
 
         print('total training loss %.2f' % total_loss)
         print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
