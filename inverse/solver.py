@@ -9,15 +9,20 @@ class RenderMatrix:
         '''
         Given (orthogonalized) render matrix R 
         and image x, compute the measurement
-        '''    
-        return torch.matmul(self.R, x.permute([1, 2, 0]).flatten())
+
+        A transpose is required due to different
+        in convention between MATLAB and torch
+        '''
+
+        return torch.matmul(self.R, x.transpose(1, 2).flatten())
 
     def recon(self, msmt):
         '''
         From measurement to image space
         (projection onto R)
         '''
-        return torch.matmul(self.R.T, msmt).reshape(self.im_size).permute([2, 0, 1])
+        
+        return torch.matmul(self.R.T, msmt).reshape(self.im_size).transpose(1, 2)
 
 # sample from prior with linear constraint (render matrix)
 def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
@@ -39,7 +44,7 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
     e = torch.ones_like(R_T(msmt))
     n = torch.numel(e)
 
-    mu = 0.5 * (e - R_T(R(e))) + R_T(msmt)         
+    mu = 0.5 * (e - R_T(R(e))) + R_T(msmt)
     y = torch.normal(mean=mu, std=1.0).unsqueeze(0).to(device)
 
     sigma = torch.norm(log_grad(y)) / np.sqrt(n)
@@ -72,6 +77,4 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
     
     all_ys.append(numpy_image(y + log_grad(y)))
     return all_ys
-
-        
 
