@@ -89,8 +89,8 @@ class ISLVRC():
             self.train_patches = np.stack(self.train_patches)
         
         # sample for testing set
-        test_size = (128, 128)
-        test_scale = [0.50]
+        test_size = args.test_size
+        test_scale = args.test_scale
         self.test_patches = []
         for file_name in os.listdir(self.test_folder):
             image = plt.imread(os.path.join(self.test_folder, file_name))

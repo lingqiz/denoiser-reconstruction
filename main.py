@@ -46,8 +46,12 @@ def args():
     # training dataset
     parser.add_argument('--patch_size', 
                         default= (64, 64))
+    parser.add_argument('--test_size', 
+                        default= (128, 128))
     parser.add_argument('--scales',
                         default=[1.0, 0.75, 0.50, 0.25])
+    parser.add_argument('--test_scale',
+                        default=[0.5])
     parser.add_argument('--linear',
                         default=True)
     
