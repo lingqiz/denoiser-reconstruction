@@ -6,10 +6,8 @@ from torch.cuda.amp import autocast, GradScaler
 from utils.dataset import test_model
 
 def train_denoiser(train_set, test_set, model, args):
-    # training with gpu/multi-gpu
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if args.multi_gpu:
-        model = nn.DataParallel(model)
+    # training with gpu if available
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(device)
 
     # setup for training
@@ -20,7 +18,7 @@ def train_denoiser(train_set, test_set, model, args):
 
     # training dataset
     train_set = DataLoader(train_set, batch_size=args.batch_size, 
-                shuffle=True, num_workers=8, pin_memory=True)
+                shuffle=True, num_workers=4, pin_memory=True)
 
     for epoch in range(args.n_epoch):
         model.train()
@@ -31,8 +29,8 @@ def train_denoiser(train_set, test_set, model, args):
             optimizer.zero_grad()
 
             # choose a noise level for the batch
-            noise_level = random.randint(args.noise_level[0], args.noise_level[1])            
-            
+            noise_level = random.randint(args.noise_level[0], args.noise_level[1])
+
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(device)
             noise = torch.normal(0, noise_level / 255.0, size=batch.size()).to(device)
