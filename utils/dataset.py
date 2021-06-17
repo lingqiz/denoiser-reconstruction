@@ -88,7 +88,7 @@ class ISLVRC():
         
         # sample for testing set
         test_size = (128, 128)
-        test_scale = [0.45]
+        test_scale = [0.50]
         self.test_patches = []
         for file_name in os.listdir(self.test_folder):
             image = plt.imread(os.path.join(self.test_folder, file_name))
