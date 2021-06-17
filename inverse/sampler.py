@@ -11,6 +11,9 @@ def sample_prior(model, init, h_init=0.01, beta=0.01, sig_end=0.01, stride=5):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.eval().to(device)
 
+    # helper function for pytorch image to numpy image
+    numpy_image = lambda y: y.squeeze(0).permute(1, 2, 0).cpu().numpy()
+
     # the network calculates the noise residual
     def log_grad(y):
         with torch.no_grad():
@@ -40,11 +43,9 @@ def sample_prior(model, init, h_init=0.01, beta=0.01, sig_end=0.01, stride=5):
 
         if stride > 0 and (t - 1) % stride == 0:
             print('iter %d, sigma %.2f' % (t, sigma.item()))
-            all_ys.append(y.squeeze(0).permute(1, 2, 0).cpu().numpy())
+            all_ys.append(numpy_image(y))
 
         t += 1
 
-    # different convention for numpy vs pytorch images
-    all_ys.append(y.squeeze(0).permute(1, 2, 0).cpu().numpy())
-
+    all_ys.append(numpy_image(y))
     return all_ys
