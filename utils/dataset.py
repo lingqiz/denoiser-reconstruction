@@ -24,18 +24,20 @@ def sample_patch(image, scales, patch_size):
 GAMMA_TABLE = scipy.io.loadmat('./assets/gamma.mat')['gammaTable']
 
 def gamma_linear(image):
+    image_linear = np.zeros(image.shape)
     for idx in range(image.shape[-1]):
-        image[:, :, idx] = np.interp(image[:, :, idx], 
+        image_linear[:, :, idx] = np.interp(image[:, :, idx], 
             np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]), GAMMA_TABLE[:, idx])
     
-    return image
+    return image_linear
 
 def gamma_correct(image):
+    image_correct = np.zeros(image.shape)
     for idx in range(image.shape[-1]):
-        image[:, :, idx] = np.interp(image[:, :, idx], 
+        image_correct[:, :, idx] = np.interp(image[:, :, idx], 
             GAMMA_TABLE[:, idx], np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]))
     
-    return image
+    return image_correct
 
 # test image denoising model
 def test_model(test_set, model, noise, device):
