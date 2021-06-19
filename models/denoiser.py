@@ -56,7 +56,7 @@ class Denoiser(nn.Module):
         # init with kaiming normal
         def init_fun(m):
             classname = m.__class__.__name__
-            if classname.find('Conv') != -1:                
+            if classname.find('Conv') != -1:
                 nn.init.kaiming_normal_(m.weight.data, a=0, mode='fan_in')
 
         self.apply(init_fun)
@@ -70,14 +70,15 @@ class Denoiser(nn.Module):
 
             x = conv(x)
             if idx > 0:
-                # apply BN
+                # apply batch normalization
                 sd_x = torch.sqrt(x.var(dim=(0, 2, 3), keepdim=True, unbiased=False) + 1e-05)
                 if self.training:
                     x = x / sd_x.expand_as(x)
                     x = x * self.gammas[idx - 1].expand_as(x)
 
-                    new_sd = (1 - 0.1) * self.running_sd[idx - 1] + 0.1 * sd_x
-                    self.running_sd[idx - 1] = new_sd
+                    # update the running estimate
+                    self.running_sd[idx - 1] *= (1 - 0.1)
+                    self.running_sd[idx - 1] += (0.1 * sd_x)
                 else:
                     x = x / self.running_sd[idx - 1].expand_as(x)
                     x = x * self.gammas[idx - 1].expand_as(x)
