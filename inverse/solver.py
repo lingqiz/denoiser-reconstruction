@@ -56,8 +56,7 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
         h = (h_init * t) / (1 + h_init * (t - 1))
 
         # projected log prior gradient
-        d = log_grad(y).squeeze(0)
-        d - R_T(R(d))
+        d = log_grad(y).squeeze(0)        
         d = (d - R_T(R(d)) + R_T(msmt) - 
             R_T(R(y.squeeze(0)))).unsqueeze(0)
 
