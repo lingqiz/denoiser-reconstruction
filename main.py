@@ -1,6 +1,6 @@
-import argparse, torch
+import argparse, torch, os, torch.multiprocessing as mp
 from models.denoiser import Denoiser
-from utils.training import train_denoiser
+from utils.training import train_denoiser, train_parallel
 from utils.dataset import ISLVRC, test_model
 
 # run argument parser
@@ -87,9 +87,20 @@ def train(args):
         sum(p.numel() for p in model.parameters()))
 
     # model training
-    print('start training')
-    model = train_denoiser(islvrc.train_set(), 
-            islvrc.test_set(), model, args)
+    if args.ddp:
+        world_size = torch.cuda.device_count()
+        print('start training with %d GPUs' % world_size)
+
+        os.environ['MASTER_ADDR'] = 'localhost'
+        os.environ['MASTER_PORT'] = '12355'
+
+        mp.spawn(train_parallel, nprocs=world_size, 
+        args=(world_size, islvrc.train_set(), islvrc.test_set(), model, args))
+
+    else:
+        print('start training')
+        model = train_denoiser(islvrc.train_set(), 
+                islvrc.test_set(), model, args)
 
     # save trained model
     print('save model parameters')
