@@ -1,9 +1,10 @@
 import torch, torch.nn as nn, time, datetime, random
+from models.denoiser import Denoiser
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from torch.cuda.amp import autocast, GradScaler
-from utils.dataset import test_model
+from utils.dataset import ISLVRC, test_model
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DSP
@@ -69,14 +70,13 @@ def train_denoiser(train_set, test_set, model, args):
 
     return model.eval().cpu()
 
-def train_parallel(rank, world_size, train_set, test_set, model, args):
-    print('init')
+def train_parallel(rank, world_size, args):    
     dist.init_process_group("nccl", init_method='env://', 
                             rank=rank, world_size=world_size)
     
     # wrap the model with DDP
-    model = model.to(rank)
-    ddp_model = DDP(model, device_ids=[rank])
+    model = Denoiser(args).to(rank)    
+    model = DDP(model, device_ids=[rank])
 
     # setup for training
     optimizer = Adam(model.parameters(), lr=args.lr)
@@ -84,16 +84,22 @@ def train_parallel(rank, world_size, train_set, test_set, model, args):
                 milestones=args.decay_epoch, gamma=args.decay_rate)
     criterion = nn.MSELoss()
 
+    # setup dataset
+    islvrc = ISLVRC(args)
+    train_set = islvrc.train_set()
+    test_set = islvrc.test_set()
+
     # training dataset
-    data_sampler = DSP(train_set, num_replicas=world_size, rank=rank)
+    data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
     train_set = DataLoader(train_set, batch_size=args.batch_size, 
                 shuffle=False, pin_memory=True, sampler=data_sampler)
 
     for epoch in range(args.n_epoch):
-        ddp_model.train()
+        model.train()
         total_loss = 0.0
         start_time = time.time()
 
+        train_set.sampler.set_epoch(epoch)
         for _, batch in enumerate(train_set):
             optimizer.zero_grad()
 
@@ -107,14 +113,13 @@ def train_parallel(rank, world_size, train_set, test_set, model, args):
 
             # the network takes noisy images as input 
             # and returns residual (i.e., skip connections)
-            residual = ddp_model(noisy_img)
+            residual = model(noisy_img)
             loss = criterion(residual, noise)
 
             loss.backward()
             optimizer.step()
 
             total_loss += loss.item()
-
         scheduler.step()
         
         if rank == 0:
@@ -128,5 +133,8 @@ def train_parallel(rank, world_size, train_set, test_set, model, args):
             print('time elapsed: %s' % str(datetime.timedelta(
                 seconds=time.time() - start_time))[:-4])
 
+    # save the parameters of the model
+    if rank == 0:
+        torch.save(model.state_dict(), args.save_dir)
+
     dist.destroy_process_group()
-    return model.eval().cpu()

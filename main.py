@@ -1,4 +1,5 @@
 import argparse, torch, os, torch.multiprocessing as mp
+from random import randint
 from models.denoiser import Denoiser
 from utils.training import train_denoiser, train_parallel
 from utils.dataset import ISLVRC, test_model
@@ -76,17 +77,8 @@ def args():
 
 args = args()
 
-def train(args):
-    # load dataset
-    print('load training data')
-    islvrc = ISLVRC(args)
-
-    # denoiser CNN
-    model = Denoiser(args)
-    print('number of parameters is ', 
-        sum(p.numel() for p in model.parameters()))
-
-    # model training
+def train(args):    
+    # train with DDP and Multi-GPUs
     if args.ddp:
         world_size = torch.cuda.device_count()
         print('start training with %d GPUs' % world_size)
@@ -94,17 +86,28 @@ def train(args):
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'
 
+        args.seed = randint(0, 65535)
         mp.spawn(train_parallel, nprocs=world_size, 
-        args=(world_size, islvrc.train_set(), islvrc.test_set(), model, args))
+        args=(world_size, args))
 
+    # train with single GPU (or CPUs)
     else:
+        # denoiser conv net
+        model = Denoiser(args)
+        print('number of parameters is ', 
+            sum(p.numel() for p in model.parameters()))
+
+        # load dataset
+        print('load training data')
+        islvrc = ISLVRC(args)
+        
         print('start training')
         model = train_denoiser(islvrc.train_set(), 
                 islvrc.test_set(), model, args)
 
-    # save trained model
-    print('save model parameters')
-    torch.save(model.state_dict(), args.save_dir)
+        # save trained model
+        print('save model parameters')
+        torch.save(model.state_dict(), args.save_dir)
 
 def test(args):
     test_set = ISLVRC(args, test_mode=True).test_set()
