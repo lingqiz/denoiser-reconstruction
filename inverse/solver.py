@@ -1,4 +1,5 @@
 import torch, numpy as np
+import warnings
 
 class RenderMatrix:
     def __init__(self, R, im_size, device):
@@ -65,11 +66,14 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
 
         # protect against divergence
         div_thld = 1e2
-        if sigma > div_thld:            
+        if sigma > div_thld:
+            warnings.warn('Divergence detected, resample with \
+                larger step size and tolerance.', RuntimeWarning)
+
             return linear_inverse(model, render, msmt, 
             h_init, beta * 2, sig_end * 2, stride)
 
-        # inject noise        
+        # inject noise
         gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
         noise = torch.randn(size=y.size(), device=device)
 

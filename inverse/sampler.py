@@ -1,4 +1,5 @@
 import torch, numpy as np
+import warnings
 
 # sample from the implicit prior
 def sample_prior(model, init, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
@@ -36,7 +37,10 @@ def sample_prior(model, init, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
 
         # protect against divergence
         div_thld = 1e2
-        if sigma > div_thld:                        
+        if sigma > div_thld:
+            warnings.warn('Divergence detected, resample with \
+                larger step size and tolerance.', RuntimeWarning)
+                
             return sample_prior(model, init, 
             h_init, beta * 2, sig_end * 2, stride)
 
