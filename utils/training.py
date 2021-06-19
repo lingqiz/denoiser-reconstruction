@@ -19,13 +19,13 @@ def train_denoiser(train_set, test_set, model, args):
     # setup for training
     optimizer = Adam(model.parameters(), lr=args.lr)
     scheduler = MultiStepLR(optimizer, 
-                milestones=args.decay_epoch, gamma=args.decay_rate)                
+                milestones=args.decay_epoch, gamma=args.decay_rate)
     criterion = nn.MSELoss()
     scaler = GradScaler()
 
     # training dataset
     train_set = DataLoader(train_set, batch_size=args.batch_size, 
-                shuffle=True, num_workers=4, pin_memory=True)
+                shuffle=True, pin_memory=True)
 
     for epoch in range(args.n_epoch):
         model.train()
