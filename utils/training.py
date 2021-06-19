@@ -9,11 +9,6 @@ def train_denoiser(train_set, test_set, model, args):
     # training with GPU(s) if available
     # use DataParallel for multi-GPU training 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-
-    if torch.cuda.device_count() > 1:
-        print('Use', torch.cuda.device_count(), 'GPUs')
-        model = nn.DataParallel(model)
-        
     model = model.to(device)
 
     # setup for training

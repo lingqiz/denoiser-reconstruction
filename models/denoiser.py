@@ -63,11 +63,8 @@ class Denoiser(nn.Module):
 
     # forward function
     def forward(self, x):
-        # loop through all the layers
-        for idx, conv in zip(range(self.num_layers), self.conv_layers):
-            if idx == self.num_layers - 1:
-                return conv(x)
-
+        # loop through layers
+        for idx, conv in zip(range(self.num_layers - 1), self.conv_layers):
             x = conv(x)
             if idx > 0:
                 # apply batch normalization
@@ -82,5 +79,6 @@ class Denoiser(nn.Module):
                 else:
                     x = x / self.running_sd[idx - 1].expand_as(x)
                     x = x * self.gammas[idx - 1].expand_as(x)
-
             x = self.relu(x)
+        
+        return self.conv_layers[-1](x)
