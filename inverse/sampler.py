@@ -1,7 +1,7 @@
 import torch, numpy as np
 
 # sample from the implicit prior
-def sample_prior(model, init, h_init=0.01, beta=0.05, sig_end=0.01, stride=10):
+def sample_prior(model, init, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
     '''
     h: step size of the gradient step
     beta: amount of injected noise
@@ -34,7 +34,13 @@ def sample_prior(model, init, h_init=0.01, beta=0.05, sig_end=0.01, stride=10):
         d = log_grad(y)
         sigma = torch.norm(d) / np.sqrt(n)
 
-        # amount of injected noise
+        # protect against divergence
+        div_thld = 1e2
+        if sigma > div_thld:                        
+            return sample_prior(model, init, 
+            h_init, beta * 2, sig_end * 2, stride)
+
+        # inject noise        
         gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
         noise = torch.randn(size=y.size(), device=device)
         

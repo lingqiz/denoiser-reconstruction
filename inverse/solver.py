@@ -46,7 +46,6 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
 
     mu = 0.5 * (e - R_T(R(e))) + R_T(msmt)
     y = torch.normal(mean=mu, std=1.0).unsqueeze(0).to(device)
-
     sigma = torch.norm(log_grad(y)) / np.sqrt(n)
 
     t = 1
@@ -61,12 +60,20 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
         d = (d - R_T(R(d)) + R_T(msmt) - 
             R_T(R(y.squeeze(0)))).unsqueeze(0)
 
-        # inject noise
+        # noise magnitude
         sigma = torch.norm(d) / np.sqrt(n)
+
+        # protect against divergence
+        div_thld = 1e2
+        if sigma > div_thld:            
+            return linear_inverse(model, render, msmt, 
+            h_init, beta * 2, sig_end * 2, stride)
+
+        # inject noise        
         gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
         noise = torch.randn(size=y.size(), device=device)
 
-        # update image        
+        # update image
         y = y + h * d + gamma * noise
 
         if stride > 0 and (t - 1) % stride == 0:
