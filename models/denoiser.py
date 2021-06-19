@@ -74,11 +74,10 @@ class Denoiser(nn.Module):
                 sd_x = torch.sqrt(x.var(dim=(0, 2, 3), keepdim=True, unbiased=False) + 1e-05)
                 if self.training:
                     x = x / sd_x.expand_as(x)
+                    x = x * self.gammas[idx - 1].expand_as(x)
 
                     new_sd = (1 - 0.1) * self.running_sd[idx - 1] + 0.1 * sd_x
                     self.running_sd[idx - 1] = new_sd
-
-                    x = x * self.gammas[idx - 1].expand_as(x)
                 else:
                     x = x / self.running_sd[idx - 1].expand_as(x)
                     x = x * self.gammas[idx - 1].expand_as(x)
