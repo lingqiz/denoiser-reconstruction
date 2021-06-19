@@ -26,30 +26,33 @@ def args():
                         help='input batch size for training')
     parser.add_argument('--n_epoch', 
                         type=int,
-                        default=50,
+                        default=60,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
-                        default=[1, 120])
+                        default=[1, 128])
     parser.add_argument('--lr',
                         type=float,
                         default=1e-3)
-    parser.add_argument('--lr_decay',
+    parser.add_argument('--decay_epoch',
+                        default=[40, 50])
+    parser.add_argument('--decay_rate',
                         type=float,
-                        default=0.975)
-    parser.add_argument('--multi_gpu',
+                        default=0.50)
+    parser.add_argument('--ddp',
                         type=bool,
-                        default=False)
+                        default=False,
+                        help='Distributed Data Parallel')
     parser.add_argument('--save_dir',
                         type=str,
                         default='./assets/model_para.pt')
     
     # training dataset
     parser.add_argument('--patch_size', 
-                        default= (64, 64))
+                        default= (48, 48))
     parser.add_argument('--test_size', 
                         default= (128, 128))
     parser.add_argument('--scales',
-                        default=[1.0, 0.75, 0.50, 0.25])
+                        default=[1.0, 0.80, 0.60, 0.40, 0.20])
     parser.add_argument('--test_scale',
                         default=[0.5])
     parser.add_argument('--linear',

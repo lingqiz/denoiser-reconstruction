@@ -27,24 +27,21 @@ class Denoiser(nn.Module):
         self.relu = nn.ReLU(inplace=True)
         self.conv_layers = nn.ModuleList([])
         
-        # batch norm
-        self.gammas = nn.ParameterList([])
-        self.register_buffer('running_sd', 
-            torch.empty([self.num_layers - 2, 1, self.num_kernels, 1, 1]))
+        #  approximate batch normalization without the additive bias term
+        gamma_init = (torch.randn((self.num_layers - 2, 1, self.num_kernels, 1, 1)) \
+            * (2. / 9. / 64.)).clamp_(-0.025, 0.025)
+        self.gammas = nn.Parameter(gamma_init, requires_grad=True)
 
-        # add conv layers
+        self.register_buffer('running_sd', 
+            torch.ones([self.num_layers - 2, 1, self.num_kernels, 1, 1]))
+
+        # add first conv layers
         self.__add_layer(ch_in=self.im_channels, ch_out=self.num_kernels)
 
         for idx in range(self.num_layers - 2):
             self.__add_layer(ch_in=self.num_kernels, ch_out=self.num_kernels)
-            
-            # approximate Batch Normalization without the additive bias term
-            self.running_sd[idx, ] = torch.ones(1, self.num_kernels, 1, 1)
-
-            g = (torch.randn((1, self.num_kernels, 1, 1)) * (2. / 9. / 64.)).clamp_(-0.025, 0.025)
-            self.gammas.append(nn.Parameter(g, requires_grad=True))
                         
-        # last layer without BN
+        # add last conv layer
         self.__add_layer(ch_in=self.num_kernels, ch_out=self.im_channels)
         
         # weight init
@@ -56,13 +53,11 @@ class Denoiser(nn.Module):
             nn.Conv2d(ch_in, ch_out, self.kernel_size, padding=self.padding, bias=False))
 
     def __weight_init(self):
-
+        # init with kaiming normal
         def init_fun(m):
             classname = m.__class__.__name__
-            if classname.find('Conv') != -1:
+            if classname.find('Conv') != -1:                
                 nn.init.kaiming_normal_(m.weight.data, a=0, mode='fan_in')
-            elif classname.find('Linear') != -1:
-                nn.init.kaiming_normal(m.weight.data, a=0, mode='fan_in')
 
         self.apply(init_fun)
 

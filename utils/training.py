@@ -1,18 +1,25 @@
 import torch, torch.nn as nn, time, datetime, random
 from torch.optim import Adam
-from torch.optim.lr_scheduler import ExponentialLR
+from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from torch.cuda.amp import autocast, GradScaler
 from utils.dataset import test_model
 
 def train_denoiser(train_set, test_set, model, args):
-    # training with gpu if available
+    # training with GPU(s) if available
+    # use DataParallel for multi-GPU training 
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+
+    if torch.cuda.device_count() > 1:
+        print('Use', torch.cuda.device_count(), 'GPUs')
+        model = nn.DataParallel(model)
+        
     model = model.to(device)
 
     # setup for training
     optimizer = Adam(model.parameters(), lr=args.lr)
-    scheduler = ExponentialLR(optimizer, gamma=args.lr_decay)
+    scheduler = MultiStepLR(optimizer, 
+                milestones=args.decay_epoch, gamma=args.decay_rate)                
     criterion = nn.MSELoss()
     scaler = GradScaler()
 
@@ -51,7 +58,7 @@ def train_denoiser(train_set, test_set, model, args):
             scaler.update()
 
         scheduler.step()
-        psnr = test_model(test_set, model, noise=100.0, device=device)[0].mean(axis=1)
+        psnr = test_model(test_set, model, noise=128.0, device=device)[0].mean(axis=1)
 
         # print some diagnostic information
         print('epoch %d/%d' % (epoch + 1, args.n_epoch))
