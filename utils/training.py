@@ -9,6 +9,13 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DSP
 
+def sample_noise(size, noise_level):    
+    noise = torch.empty(size=size)
+    for idx in range(size[0]):
+        noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
+        noise[idx] = torch.normal(mean=0, std=noise_sd, shape=size[1:])
+    return noise
+
 def train_denoiser(train_set, test_set, model, args):
     # training with GPU(s) if available
     # use DataParallel for multi-GPU training 
@@ -31,22 +38,19 @@ def train_denoiser(train_set, test_set, model, args):
         total_loss = 0.0
         start_time = time.time()
 
-        for _, batch in enumerate(train_set):
+        for count, batch in enumerate(train_set):
             optimizer.zero_grad()
-
-            # choose a noise level for the batch
-            noise_level = random.randint(args.noise_level[0], args.noise_level[1])
-
+            
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(device)
-            noise = torch.normal(0, noise_level / 255.0, size=batch.size()).to(device)
-            noisy_img = batch + noise
+            noise = sample_noise(batch.size(), args.noise_level).to(device)
+            noise_input = batch + noise
 
             # auto mixed precision forward pass
             with autocast():
                 # the network takes noisy images as input 
                 # and returns residual (i.e., skip connections)
-                residual = model(noisy_img)
+                residual = model(noise_input)
                 loss = criterion(residual, noise)
 
             total_loss += loss.item()
@@ -62,7 +66,7 @@ def train_denoiser(train_set, test_set, model, args):
         # print some diagnostic information
         print('epoch %d/%d' % (epoch + 1, args.n_epoch))
 
-        print('total training loss %.2f' % total_loss)
+        print('average loss %.6f' % (total_loss / float(count)))
         print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
 
         print('time elapsed: %s' % str(datetime.timedelta(
@@ -95,7 +99,7 @@ def train_parallel(rank, world_size, args):
 
     # training dataset
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
-    train_set = DataLoader(train_set, batch_size=args.batch_size, 
+    train_set = DataLoader(train_set, batch_size=args.batch_size,
                 shuffle=False, pin_memory=True, sampler=data_sampler)
 
     for epoch in range(args.n_epoch):
@@ -106,20 +110,17 @@ def train_parallel(rank, world_size, args):
         train_set.sampler.set_epoch(epoch)
         for count, batch in enumerate(train_set):
             optimizer.zero_grad()
-
-            # choose a noise level for the batch
-            noise_level = random.randint(args.noise_level[0], args.noise_level[1])
-
+            
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(rank)
-            noise = torch.normal(0, noise_level / 255.0, size=batch.size()).to(rank)
-            noisy_img = batch + noise
+            noise = sample_noise(batch.size(), args.noise_level).to(rank)
+            noise_input = batch + noise
 
             # auto mixed precision forward pass
             with autocast():
                 # the network takes noisy images as input 
                 # and returns residual (i.e., skip connections)
-                residual = model(noisy_img)
+                residual = model(noise_input)
                 loss = criterion(residual, noise)
 
             total_loss += loss.item()
@@ -136,7 +137,7 @@ def train_parallel(rank, world_size, args):
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
             
             psnr = test_model(test_set, model, noise=128.0, device=rank)[0].mean(axis=1)
-            print('total average loss %.2f' % (total_loss / float(count)))
+            print('average loss %.6f' % (total_loss / float(count)))
             print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
 
             print('time elapsed: %s' % str(datetime.timedelta(
