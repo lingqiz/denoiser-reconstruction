@@ -70,11 +70,14 @@ def train_denoiser(train_set, test_set, model, args):
 
     return model.eval().cpu()
 
+# training with Distributed Data Parallel (process level parallelism)
 def train_parallel(rank, world_size, args):    
     dist.init_process_group("nccl", init_method='env://', 
                             rank=rank, world_size=world_size)
     
     # wrap the model with DDP
+    # In DDP, the constructor, the forward pass, 
+    # and the backward pass are distributed synchronization points
     model = Denoiser(args).to(rank)    
     model = DDP(model, device_ids=[rank])
 
@@ -83,6 +86,7 @@ def train_parallel(rank, world_size, args):
     scheduler = MultiStepLR(optimizer, 
                 milestones=args.decay_epoch, gamma=args.decay_rate)
     criterion = nn.MSELoss()
+    scaler = GradScaler()
 
     # setup dataset
     islvrc = ISLVRC(args)
@@ -100,7 +104,7 @@ def train_parallel(rank, world_size, args):
         start_time = time.time()
 
         train_set.sampler.set_epoch(epoch)
-        for _, batch in enumerate(train_set):
+        for count, batch in enumerate(train_set):
             optimizer.zero_grad()
 
             # choose a noise level for the batch
@@ -111,15 +115,20 @@ def train_parallel(rank, world_size, args):
             noise = torch.normal(0, noise_level / 255.0, size=batch.size()).to(rank)
             noisy_img = batch + noise
 
-            # the network takes noisy images as input 
-            # and returns residual (i.e., skip connections)
-            residual = model(noisy_img)
-            loss = criterion(residual, noise)
-
-            loss.backward()
-            optimizer.step()
+            # auto mixed precision forward pass
+            with autocast():
+                # the network takes noisy images as input 
+                # and returns residual (i.e., skip connections)
+                residual = model(noisy_img)
+                loss = criterion(residual, noise)
 
             total_loss += loss.item()
+
+            # backward with gradient scaling
+            scaler.scale(loss).backward()
+            scaler.step(optimizer)
+            scaler.update()
+            
         scheduler.step()
         
         if rank == 0:
@@ -127,7 +136,7 @@ def train_parallel(rank, world_size, args):
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
             
             psnr = test_model(test_set, model, noise=128.0, device=rank)[0].mean(axis=1)
-            print('total training loss %.2f' % total_loss)
+            print('total average loss %.2f' % total_loss / float(count))
             print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
 
             print('time elapsed: %s' % str(datetime.timedelta(
@@ -135,6 +144,7 @@ def train_parallel(rank, world_size, args):
 
     # save the parameters of the model
     if rank == 0:
+        print('save model parameters')
         torch.save(model.state_dict(), args.save_dir)
 
     dist.destroy_process_group()

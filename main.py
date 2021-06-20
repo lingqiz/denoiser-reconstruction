@@ -27,7 +27,7 @@ def args():
                         help='input batch size for training')
     parser.add_argument('--n_epoch', 
                         type=int,
-                        default=60,
+                        default=65,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
                         default=[1, 128])
@@ -35,7 +35,7 @@ def args():
                         type=float,
                         default=1e-3)
     parser.add_argument('--decay_epoch',
-                        default=[15, 30, 45])
+                        default=[25, 35, 45, 55])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
@@ -63,10 +63,10 @@ def args():
     # network architecture
     parser.add_argument('--padding',
                         type=int,
-                        default=1)
+                        default=2)
     parser.add_argument('--kernel_size',
                         type=int,
-                        default=3)
+                        default=5)
     parser.add_argument('--num_kernels',
                         type=int,
                         default=64)
