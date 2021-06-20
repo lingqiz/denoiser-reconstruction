@@ -65,7 +65,7 @@ def args():
                         type=int,
                         default=1)
     parser.add_argument('--kernel_size',
-                        type=int
+                        type=int,
                         default=3)
     parser.add_argument('--num_kernels',
                         type=int,
