@@ -13,7 +13,7 @@ def sample_noise(size, noise_level):
     noise = torch.empty(size=size)
     for idx in range(int(size[0])):
         noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
-        noise[idx] = torch.normal(mean=0.0, std=noise_sd, shape=list(size[1:]))
+        noise[idx] = torch.normal(mean=0.0, std=noise_sd, size=list(size[1:]))
 
     return noise
 
