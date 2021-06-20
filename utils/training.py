@@ -136,7 +136,7 @@ def train_parallel(rank, world_size, args):
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
             
             psnr = test_model(test_set, model, noise=128.0, device=rank)[0].mean(axis=1)
-            print('total average loss %.2f' % total_loss / float(count))
+            print('total average loss %.2f' % (total_loss / float(count)))
             print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
 
             print('time elapsed: %s' % str(datetime.timedelta(
@@ -145,6 +145,6 @@ def train_parallel(rank, world_size, args):
     # save the parameters of the model
     if rank == 0:
         print('save model parameters')
-        torch.save(model.state_dict(), args.save_dir)
+        torch.save(model.module.state_dict(), args.save_dir)
 
     dist.destroy_process_group()
