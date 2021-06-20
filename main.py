@@ -35,7 +35,7 @@ def args():
                         type=float,
                         default=1e-3)
     parser.add_argument('--decay_epoch',
-                        default=[40, 50])
+                        default=[15, 30, 45])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
@@ -49,27 +49,33 @@ def args():
     
     # training dataset
     parser.add_argument('--patch_size', 
-                        default= (48, 48))
+                        default=(48, 48))
     parser.add_argument('--test_size', 
-                        default= (128, 128))
+                        default=(128, 128))
     parser.add_argument('--scales',
                         default=[1.0, 0.80, 0.60, 0.40, 0.20])
     parser.add_argument('--test_scale',
                         default=[0.5])
     parser.add_argument('--linear',
+                        type=bool,
                         default=True)
     
     # network architecture
-    parser.add_argument('--padding', 
-                        default= 1)
-    parser.add_argument('--kernel_size', 
-                        default= 3)
-    parser.add_argument('--num_kernels', 
-                        default= 64)
-    parser.add_argument('--num_layers', 
-                        default= 20)
-    parser.add_argument('--im_channels', 
-                        default= 3)
+    parser.add_argument('--padding',
+                        type=int,
+                        default=1)
+    parser.add_argument('--kernel_size',
+                        type=int
+                        default=3)
+    parser.add_argument('--num_kernels',
+                        type=int,
+                        default=64)
+    parser.add_argument('--num_layers',
+                        type=int,
+                        default=20)
+    parser.add_argument('--im_channels',
+                        type=int,
+                        default=3)
 
     # parse arguments and check
     args = parser.parse_args()
