@@ -19,7 +19,7 @@ def args():
                         help='script mode')
     parser.add_argument('--model_path',
                         type=str,
-                        default='./assets/linear_06-20-02.pt')
+                        default='./assets/large_model.pt')
 
     # arguments for network training
     parser.add_argument('--batch_size', 
