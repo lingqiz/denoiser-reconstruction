@@ -1,8 +1,8 @@
-import argparse, torch, os, torch.multiprocessing as mp
 from random import randint
 from models.denoiser import Denoiser
 from utils.training import train_denoiser, train_parallel
 from utils.dataset import ISLVRC, test_model
+import argparse, torch, os, torch.multiprocessing as mp
 
 # run argument parser
 def args():
@@ -27,15 +27,15 @@ def args():
                         help='input batch size for training')
     parser.add_argument('--n_epoch', 
                         type=int,
-                        default=65,
+                        default=100,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
                         default=[0, 128])
     parser.add_argument('--lr',
                         type=float,
-                        default=1e-3)
+                        default=5e-4)
     parser.add_argument('--decay_epoch',
-                        default=[25, 35, 45, 55])
+                        default=[40, 60, 80])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
