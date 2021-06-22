@@ -33,9 +33,9 @@ def args():
                         default=[0, 128])
     parser.add_argument('--lr',
                         type=float,
-                        default=5e-4)
+                        default=6e-4)
     parser.add_argument('--decay_epoch',
-                        default=[40, 60, 80])
+                        default=[40, 60, 80, 100])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
