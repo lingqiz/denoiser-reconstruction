@@ -19,7 +19,7 @@ def args():
                         help='script mode')
     parser.add_argument('--model_path',
                         type=str,
-                        default='./assets/large_model.pt')
+                        default='./assets/conv3_ln.pt')
 
     # arguments for network training
     parser.add_argument('--batch_size', 
@@ -63,10 +63,10 @@ def args():
     # network architecture
     parser.add_argument('--padding',
                         type=int,
-                        default=2)
+                        default=1)
     parser.add_argument('--kernel_size',
                         type=int,
-                        default=5)
+                        default=3)
     parser.add_argument('--num_kernels',
                         type=int,
                         default=64)
