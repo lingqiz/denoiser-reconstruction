@@ -26,6 +26,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
     scaler = GradScaler()
 
     # run training
+    torch.backends.cudnn.benchmark = True
     for epoch in range(args.n_epoch):
         model.train()
         total_loss = 0.0
@@ -35,7 +36,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             train_set.sampler.set_epoch(epoch)
 
         for count, batch in enumerate(train_set):
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
             
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(rank)
@@ -99,7 +100,7 @@ def train_parallel(rank, world_size, args):
 
     # training dataset
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
-    train_set = DataLoader(train_set, batch_size=args.batch_size,
+    train_set = DataLoader(train_set, batch_size=args.batch_size, drop_last=True,
                 shuffle=False, pin_memory=True, sampler=data_sampler)
 
     train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
