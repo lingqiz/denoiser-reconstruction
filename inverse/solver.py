@@ -20,10 +20,71 @@ class RenderMatrix:
     def recon(self, msmt):
         '''
         From measurement to image space
-        (projection onto R)
         '''
         
         return torch.matmul(self.R.T, msmt).reshape(self.im_size).transpose(1, 2)
+
+class ArrayMatrix:
+    '''
+    Generalization of the RenderMatrix class to an array
+    of matrices that tile through larger images
+    '''
+    
+    def __init__(self, array, array_size, im_size, device):
+        self.device = device
+        self.nx = array_size[0]
+        self.ny = array_size[0]
+        
+        # im_size[1] == im_size[2]
+        self.im_size = im_size
+        self.edge = im_size[1]
+        
+        for idx in range(self.nx):
+            for idy in range(self.ny):
+                array[idx][idy] = torch.tensor(array[idx][idy].astype('float32')).to(device)
+                
+        self.array = array
+        
+    def measure(self, x):
+        '''
+        Measurement array from a set of matrices
+        '''
+
+        # init
+        msmt = [[0 for y in range(self.ny)] 
+                      for x in range(self.nx)]
+        
+        # loop through matrices
+        for idx in range(self.nx):
+            for idy in range(self.ny):
+                sliced = x[:, idy * self.edge : (idy + 1) * self.edge, 
+                          idx * self.edge : (idx + 1) * self.edge]
+
+                msmt[idx][idy] = \
+                    torch.matmul(self.array[idx][idy], 
+                                 sliced.transpose(1, 2).flatten())
+        return msmt
+    
+    def recon(self, msmt):
+        '''
+        From an array of measurements to image space
+        '''
+        
+        # init
+        recon = torch.empty(size=(3, self.ny * self.edge, 
+                                  self.nx * self.edge), 
+                            device=self.device)
+        
+        # loop through measurements
+        for idx in range(self.nx):
+            for idy in range(self.ny):
+                sliced = torch.matmul(self.array[idx][idy].T, msmt[idx][idy])
+                
+                recon[:, idy * self.edge : (idy + 1) * self.edge, 
+                      idx * self.edge : (idx + 1) * self.edge] = \
+                sliced.reshape(self.im_size).transpose(1, 2)
+
+        return recon
 
 # sample from prior with linear constraint (render matrix)
 def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
