@@ -35,7 +35,7 @@ def args():
                         type=float,
                         default=6e-4)
     parser.add_argument('--decay_epoch',
-                        default=[40, 60, 80, 100])
+                        default=[40, 60, 80, 100, 120])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
