@@ -35,7 +35,7 @@ def args():
                         type=float,
                         default=6e-4)
     parser.add_argument('--decay_epoch',
-                        default=[40, 60, 80, 100, 120])
+                        default=[40, 60, 80, 100])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
@@ -46,7 +46,7 @@ def args():
     parser.add_argument('--save_dir',
                         type=str,
                         default='./assets/model_para.pt')
-    
+
     # see dataset.py for parameters for individual dataset
     parser.add_argument('--linear',
                         type=bool,
