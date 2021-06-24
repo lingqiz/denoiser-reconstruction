@@ -62,20 +62,20 @@ def test_model(test_set, model, noise, device):
 
     return (psnr, test_set, noise_set, denoise_set)
 
-class ISLVRC():
+class DataSet:
     """
-    Load images from the ISLVRC dataset
+    Base class for training/testing dataset
     """
 
-    # read images under the islvrc directory
-    def __init__(self, args, test_mode=False):
-        self.train_folder = './utils/islvrc/train'
-        self.test_folder = './utils/islvrc/test'
+    # read images under the specified  directory
+    def __init__(self, args, train_folder, test_folder, test_mode=False):
+        self.train_folder = train_folder
+        self.test_folder = test_folder
         self.test_images = []
         self.linear = args.linear
         
-        # sample individual patches for training        
-        self.train_patches = []        
+        # sample individual patches for training
+        self.train_patches = []
         if not test_mode:
             for file_name in os.listdir(self.train_folder):
                 image = plt.imread(os.path.join(self.train_folder, file_name))
@@ -116,3 +116,27 @@ class ISLVRC():
     # return a python array of images in the test set
     def test_set(self):
         return self.test_patches
+
+class ISLVRC(DataSet):
+    def __init__(self, args, test_mode=False):        
+        train_folder = './utils/islvrc/train'
+        test_folder = './utils/islvrc/test'
+
+        args.patch_size = (48, 48)
+        args.test_size = (128, 128)
+        args.scales = [1.0, 0.80, 0.60, 0.40, 0.20]
+        args.test_scale = [0.5]
+
+        super().__init__(args, train_folder, test_folder, test_mode)
+
+class LFW(DataSet):
+    def __init__(self, args, test_mode=False):
+        train_folder = './utils/lfw/train'
+        test_folder = './utils/lfw/test'
+
+        args.patch_size = (128, 128)
+        args.test_size = (250, 250)
+        args.scales = [128.0 / 250.0]
+        args.test_scale = [1.0]
+
+        super().__init__(args, train_folder, test_folder, test_mode)

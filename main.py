@@ -47,15 +47,7 @@ def args():
                         type=str,
                         default='./assets/model_para.pt')
     
-    # training dataset
-    parser.add_argument('--patch_size', 
-                        default=(48, 48))
-    parser.add_argument('--test_size', 
-                        default=(128, 128))
-    parser.add_argument('--scales',
-                        default=[1.0, 0.80, 0.60, 0.40, 0.20])
-    parser.add_argument('--test_scale',
-                        default=[0.5])
+    # see dataset.py for parameters for individual dataset
     parser.add_argument('--linear',
                         type=bool,
                         default=True)
