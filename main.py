@@ -108,7 +108,7 @@ def train(args):
 
         # load dataset
         print('load training data')
-        dataset = DataSet(args)
+        dataset = DataSet.load_dataset(args)
         
         print('start training')
         model = train_denoiser(dataset.train_set(), 
@@ -119,7 +119,7 @@ def train(args):
         torch.save(model.state_dict(), args.save_path)
 
 def test(args):
-    test_set = DataSet(args, test_mode=True).test_set()
+    test_set = DataSet.load_dataset(args, test_mode=True).test_set()
 
     # load denoiser
     model = Denoiser(args)

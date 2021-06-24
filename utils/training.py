@@ -94,7 +94,7 @@ def train_parallel(rank, world_size, args):
     model = DDP(model, device_ids=[rank])
 
     # setup dataset
-    dataset = DataSet(args)
+    dataset = DataSet.load_dataset(args)
     train_set = dataset.train_set()
     test_set = dataset.test_set()
 

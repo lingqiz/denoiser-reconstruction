@@ -1,4 +1,4 @@
-import os, cv2, torch, scipy.io, numpy as np
+import os, cv2, torch, torchvision, scipy.io, numpy as np
 import matplotlib.pylab as plt
 from skimage.metrics import peak_signal_noise_ratio
 
@@ -66,6 +66,24 @@ class DataSet:
     """
     Base class for training/testing dataset
     """
+    @staticmethod
+    def load_dataset(args, test_mode=False):
+        # mnist is loaded directly through torchvision
+        if args.data_path == 'mnist':
+            return MNIST()
+        
+        # load other dataset from files
+        return DataFromFile(args, test_mode=test_mode)
+
+    # return sampled images from the training set
+    def train_set(self):
+        return self.train_patches
+
+    # return a python array of images in the test set
+    def test_set(self):
+        return self.test_patches
+
+class DataFromFile(DataSet):
     DATASET_KEY  = ['patch_size', 'test_size', 'scales', 'test_scale']
     DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
                     'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0])}
@@ -75,7 +93,7 @@ class DataSet:
             if getattr(args, key) is None:
                 setattr(args, key, self.DATASET_PARA[args.data_path][idx])
 
-    # read images under the specified  directory
+    # read images under the specified directory
     def __init__(self, args, test_mode=False):
         self.__init_para(args)
 
@@ -120,10 +138,30 @@ class DataSet:
         else:
             return image / 255.0
 
-    # return sampled images from the training set
-    def train_set(self):
-        return self.train_patches
+class MNIST(DataSet):
+    def __init__(self):
+        # load MNIST dataset
+        train = torchvision.datasets.MNIST('./utils', train=True, download=True,
+                             transform=torchvision.transforms.Compose([
+                               torchvision.transforms.ToTensor()])).data
+        test = torchvision.datasets.MNIST('./utils', train=False, download=True,
+                             transform=torchvision.transforms.Compose([
+                               torchvision.transforms.ToTensor()])).data
+        mnist = torch.cat([train, test])
 
-    # return a python array of images in the test set
-    def test_set(self):
-        return self.test_patches
+        # make them color images
+        all_image = []
+        for sample in mnist:
+            sample = sample.numpy()
+                
+            image = np.empty([28, 28, 3])    
+            image[sample == 0, :] = np.random.rand(3, )
+            image[sample != 0, :] = np.random.rand(3, )
+
+            all_image.append(image)
+
+        all_image = np.random.shuffle(np.stack(all_image))
+        
+        n_test = 500
+        self.test_patches = all_image[:n_test, :]
+        self.train_patches = all_image[n_test:, :]
