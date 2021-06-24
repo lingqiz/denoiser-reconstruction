@@ -90,7 +90,7 @@ def train(args):
     # train with DDP and Multi-GPUs
     if args.ddp:
         world_size = torch.cuda.device_count()
-        print('start training with %d GPUs' % world_size)
+        print('model training with %d GPUs' % world_size)
 
         os.environ['MASTER_ADDR'] = 'localhost'
         os.environ['MASTER_PORT'] = '12355'

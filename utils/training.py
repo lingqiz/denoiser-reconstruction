@@ -102,6 +102,7 @@ def train_parallel(rank, world_size, args):
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
     train_set = DataLoader(train_set, batch_size=args.batch_size, drop_last=True,
                 shuffle=False, pin_memory=True, sampler=data_sampler)
+    print('dataset loaded, start optimization')
 
     train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
 
