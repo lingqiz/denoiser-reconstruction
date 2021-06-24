@@ -4,7 +4,7 @@ from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from torch.cuda.amp import autocast, GradScaler
-from utils.dataset import ISLVRC, test_model
+from utils.dataset import DataSet, test_model
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DSP
@@ -94,9 +94,9 @@ def train_parallel(rank, world_size, args):
     model = DDP(model, device_ids=[rank])
 
     # setup dataset
-    islvrc = ISLVRC(args)
-    train_set = islvrc.train_set()
-    test_set = islvrc.test_set()
+    dataset = DataSet(args)
+    train_set = dataset.train_set()
+    test_set = dataset.test_set()
 
     # training dataset
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
@@ -108,6 +108,6 @@ def train_parallel(rank, world_size, args):
     # save the parameters of the model
     if rank == 0:
         print('save model parameters')
-        torch.save(model.module.state_dict(), args.save_dir)
+        torch.save(model.module.state_dict(), args.save_path)
 
     dist.destroy_process_group()

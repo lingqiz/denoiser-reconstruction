@@ -1,7 +1,7 @@
 from random import randint
 from models.denoiser import Denoiser
 from utils.training import train_denoiser, train_parallel
-from utils.dataset import ISLVRC, test_model
+from utils.dataset import DataSet, test_model
 import argparse, torch, os, torch.multiprocessing as mp
 
 # run argument parser
@@ -43,15 +43,26 @@ def args():
                         type=bool,
                         default=False,
                         help='Distributed Data Parallel')
-    parser.add_argument('--save_dir',
+    parser.add_argument('--save_path',
                         type=str,
                         default='./assets/model_para.pt')
 
     # see dataset.py for parameters for individual dataset
+    parser.add_argument('--data_path',
+                        type=str,
+                        default='islvrc')
     parser.add_argument('--linear',
                         type=bool,
                         default=True)
-    
+    parser.add_argument('--patch_size', 
+                        default=None)
+    parser.add_argument('--test_size', 
+                        default=None)
+    parser.add_argument('--scales',
+                        default=None)
+    parser.add_argument('--test_scale',
+                        default=None)
+
     # network architecture
     parser.add_argument('--padding',
                         type=int,
@@ -97,18 +108,18 @@ def train(args):
 
         # load dataset
         print('load training data')
-        islvrc = ISLVRC(args)
+        dataset = DataSet(args)
         
         print('start training')
-        model = train_denoiser(islvrc.train_set(), 
-                islvrc.test_set(), model, args)
+        model = train_denoiser(dataset.train_set(), 
+                dataset.test_set(), model, args)
 
         # save trained model
         print('save model parameters')
-        torch.save(model.state_dict(), args.save_dir)
+        torch.save(model.state_dict(), args.save_path)
 
 def test(args):
-    test_set = ISLVRC(args, test_mode=True).test_set()
+    test_set = DataSet(args, test_mode=True).test_set()
 
     # load denoiser
     model = Denoiser(args)

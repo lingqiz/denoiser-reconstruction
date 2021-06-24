@@ -66,11 +66,22 @@ class DataSet:
     """
     Base class for training/testing dataset
     """
+    DATASET_KEY  = ['patch_size', 'test_size', 'scales', 'test_scale']
+    DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
+                    'lfw' : ((128, 128), (250, 250), [128.0 / 250.0], [1.0])}
+
+    def __init_para(self, args):        
+        for idx, key in enumerate(self.DATASET_KEY):
+            if getattr(args, key) is None:
+                setattr(args, self.DATASET_PARA[args.data_path][idx])
 
     # read images under the specified  directory
-    def __init__(self, args, train_folder, test_folder, test_mode=False):
-        self.train_folder = train_folder
-        self.test_folder = test_folder
+    def __init__(self, args, test_mode=False):
+        self.__init_para(args)
+
+        self.train_folder = os.path.join('utils', args.data_path, 'train')
+        self.test_folder = os.path.join('utils', args.data_path, 'test')
+
         self.test_images = []
         self.linear = args.linear
         
@@ -116,27 +127,3 @@ class DataSet:
     # return a python array of images in the test set
     def test_set(self):
         return self.test_patches
-
-class ISLVRC(DataSet):
-    def __init__(self, args, test_mode=False):        
-        train_folder = './utils/islvrc/train'
-        test_folder = './utils/islvrc/test'
-
-        args.patch_size = (48, 48)
-        args.test_size = (128, 128)
-        args.scales = [1.0, 0.80, 0.60, 0.40, 0.20]
-        args.test_scale = [0.5]
-
-        super().__init__(args, train_folder, test_folder, test_mode)
-
-class LFW(DataSet):
-    def __init__(self, args, test_mode=False):
-        train_folder = './utils/lfw/train'
-        test_folder = './utils/lfw/test'
-
-        args.patch_size = (128, 128)
-        args.test_size = (250, 250)
-        args.scales = [128.0 / 250.0]
-        args.test_scale = [1.0]
-
-        super().__init__(args, train_folder, test_folder, test_mode)
