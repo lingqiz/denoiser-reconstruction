@@ -73,7 +73,7 @@ class DataSet:
     def __init_para(self, args):        
         for idx, key in enumerate(self.DATASET_KEY):
             if getattr(args, key) is None:
-                setattr(args, self.DATASET_PARA[args.data_path][idx])
+                setattr(args, key, self.DATASET_PARA[args.data_path][idx])
 
     # read images under the specified  directory
     def __init__(self, args, test_mode=False):
