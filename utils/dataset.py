@@ -68,7 +68,7 @@ class DataSet:
     """
     DATASET_KEY  = ['patch_size', 'test_size', 'scales', 'test_scale']
     DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
-                    'lfw' : ((128, 128), (250, 250), [128.0 / 250.0], [1.0])}
+                    'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0])}
 
     def __init_para(self, args):        
         for idx, key in enumerate(self.DATASET_KEY):
