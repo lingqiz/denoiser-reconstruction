@@ -160,7 +160,8 @@ class MNIST(DataSet):
 
             all_image.append(image)
 
-        all_image = np.random.shuffle(np.stack(all_image))
+        all_image = np.stack(all_image)
+        np.random.shuffle(all_image)
         
         n_test = 500
         self.test_patches = all_image[:n_test, :]
