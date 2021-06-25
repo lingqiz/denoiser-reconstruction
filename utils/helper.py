@@ -1,5 +1,29 @@
-import h5py
-import numpy as np
+import h5py, torch, numpy as np, matplotlib.pyplot as plt
+from utils.dataset import test_model, gamma_correct
+from inverse.sampler import sample_prior
+from tqdm import tqdm
+
+# denoiser demo
+def plot_denoiser(test, model, noise, n_plot, device='cpu', gamma=True):
+    result = test_model(test, model, noise=noise, device=device)    
+    
+    psnr = np.mean(result[0], axis=1)
+    print('psnr in: %.2f, out: %.2f' % (psnr[0], psnr[1]))
+
+    sample_idx = np.random.choice(range(test.shape[0]), 
+                                  size=n_plot)
+
+    fig, axs = plt.subplots(3, n_plot, figsize=(3 * n_plot, 9))
+    for idx in range(n_plot):
+        img_idx = sample_idx[idx]
+        for idy in range(3):
+            image = gamma_correct(result[idy + 1][img_idx]) if gamma else \
+                    result[idy + 1][img_idx]
+            axs[idy][idx].imshow(image)
+            axs[idy][idx].axis('off')
+
+    fig.tight_layout()
+    return fig
 
 # simple evaluation of the denoiser
 def eval_denoiser(test, model, device='cpu'):
@@ -7,7 +31,7 @@ def eval_denoiser(test, model, device='cpu'):
     noise_level = range(15, 110, 10)
 
     psnr_in = np.zeros([len(noise_level), 1])
-    psnr_out = np.zeros([len(noise_level), test.shape()[0]])
+    psnr_out = np.zeros([len(noise_level), test.shape[0]])
     
     sd_true = np.zeros(len(noise_level))
     sd_est  = np.zeros(len(noise_level))
@@ -23,6 +47,25 @@ def eval_denoiser(test, model, device='cpu'):
         sd_est[idx]  = np.std(denoise - noise)
         
     return (psnr_in, psnr_out, sd_true, sd_est)
+
+# sample from a prior
+def plot_sample(model, beta, im_size, n_sample=25, mu=0.25, gamma=True):
+    samples = []
+    for idx in tqdm(range(n_sample)):
+        init = mu + torch.randn(size=im_size)
+        samples.append(sample_prior(model, init, beta=beta, stride=0)[-1])
+
+    edge = int(np.ceil(np.sqrt(n_sample)))
+    fig, axs = plt.subplots(edge, edge, figsize=(12, 12), sharex=True, sharey=True)
+    for idx, ax in zip(range(n_sample), axs.flat):
+        image = np.clip(samples[idx], 0, 1)
+        image = gamma_correct(image) if gamma else image
+        
+        ax.imshow(image)
+        ax.axis('off')
+
+    fig.tight_layout()
+    return fig
 
 # read render array into numpy format
 def read_array(file_path):
