@@ -86,7 +86,8 @@ class DataSet:
 class DataFromFile(DataSet):
     DATASET_KEY  = ['patch_size', 'test_size', 'scales', 'test_scale']
     DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
-                    'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0])}
+                    'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0]), 
+                    'celeba' : ((50, 40), (50, 40), [50.0 / 218.0], [50.0 / 218.0])}
 
     def __init_para(self, args):        
         for idx, key in enumerate(self.DATASET_KEY):
@@ -109,11 +110,10 @@ class DataFromFile(DataSet):
             for file_name in os.listdir(self.train_folder):
                 image = plt.imread(os.path.join(self.train_folder, file_name))
                 if len(image.shape) == 3:
-                    image = self.to_float(image).astype(np.single)
                     for sample in sample_patch(image, args.scales, args.patch_size):
+                        sample = self.to_float(sample).astype(np.single)
                         if sample.mean() >= 0.05:
                             self.train_patches.append(sample)
-
             # training set
             self.train_patches = np.stack(self.train_patches)
         
@@ -127,7 +127,6 @@ class DataFromFile(DataSet):
                 image = self.to_float(image).astype(np.single)
                 for sample in sample_patch(image, test_scale, test_size):
                     self.test_patches.append(sample)
-        
         # test set
         self.test_patches = np.stack(self.test_patches)
 
