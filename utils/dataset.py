@@ -158,7 +158,7 @@ class MNIST(DataSet):
             image[sample == 0, :] = np.random.rand(3, )
             image[sample != 0, :] = np.random.rand(3, )
 
-            all_image.append(image)
+            all_image.append(image.astype(np.single))
 
         all_image = np.stack(all_image)
         np.random.shuffle(all_image)
