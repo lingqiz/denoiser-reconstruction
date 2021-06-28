@@ -70,10 +70,12 @@ class DataSet:
     def load_dataset(args, test_mode=False):
         # mnist is loaded directly through torchvision
         if args.data_path == 'mnist':
-            return MNIST()
+            return MNIST()        
+        if args.data_path == 'artwork':
+            return SingleImage(args, test_mode)
         
         # load other dataset from files
-        return DataFromFile(args, test_mode=test_mode)
+        return DataFromFile(args, test_mode)
 
     # return sampled images from the training set
     def train_set(self):
@@ -88,7 +90,8 @@ class DataFromFile(DataSet):
     DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
                     'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0]), 
                     'celeba' : ((50, 40), (50, 40), [50.0 / 218.0], [50.0 / 218.0]),
-                    'artwork' : ((128, 128), (128, 128), np.linspace(0.5, 1.0, 4), np.linspace(0.5, 1.0, 4))}
+                    'artwork' : ((128, 128), (128, 128), \
+                                 np.linspace(0.5, 1.0, 4), np.linspace(0.5, 1.0, 4))}
 
     def __init_para(self, args):        
         for idx, key in enumerate(self.DATASET_KEY):
@@ -166,3 +169,10 @@ class MNIST(DataSet):
         n_test = 500
         self.test_patches = all_image[:n_test, :]
         self.train_patches = all_image[n_test:, :]
+        
+class SingleImage(DataFromFile):
+    def __init__(self, args, test_mode=False):
+        DataFromFile.__init__(self, args, test_mode)
+        
+        # make copies of the training set
+        self.train_patches = np.repeat(self.train_patches, 100, axis=0)
