@@ -1,6 +1,10 @@
 __pycache__/
 /utils/islvrc/
 /utils/lfw/
+/utils/celeba/
+/utils/highres/
+/utils/artwork/
+/utils/MNIST/
 .*
 *.log
 *.npy
