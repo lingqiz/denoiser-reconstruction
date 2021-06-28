@@ -88,7 +88,7 @@ class DataFromFile(DataSet):
     DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
                     'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0]), 
                     'celeba' : ((50, 40), (50, 40), [50.0 / 218.0], [50.0 / 218.0]),
-                    'artwork' : ((64, 64), (64, 64), np.linspace(0.1, 1.0, 10), np.linspace(0.1, 1.0, 10))}
+                    'artwork' : ((128, 128), (128, 128), np.linspace(0.5, 1.0, 4), np.linspace(0.5, 1.0, 4))}
 
     def __init_para(self, args):        
         for idx, key in enumerate(self.DATASET_KEY):

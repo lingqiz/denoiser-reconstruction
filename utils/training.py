@@ -64,7 +64,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
             
             psnr = test_model(test_set, model, noise=128.0, device=rank)[0].mean(axis=1)
-            print('average loss %.6f' % (total_loss / float(count)))
+            print('average loss %.6f' % (total_loss / float(count + 1)))
             print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
 
             print('time elapsed: %s' % str(datetime.timedelta(
@@ -74,7 +74,10 @@ def train_denoiser(train_set, test_set, model, args):
     # training with GPU if available
     rank = (0 if torch.cuda.is_available() else 'cpu')
     model = model.to(rank)
-
+    
+    print('load dataset size %d, start optimization' \
+          % train_set.shape[0])
+    
     # training dataset
     train_set = DataLoader(train_set, batch_size=args.batch_size, 
                 shuffle=True, pin_memory=True)
@@ -106,7 +109,7 @@ def train_parallel(rank, world_size, args):
     # start optimization
     if rank == 0:
         print('load dataset size %d, start optimization' \
-		% dataset.train_set().shape[0])
+              % dataset.train_set().shape[0])
 
     train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
 
