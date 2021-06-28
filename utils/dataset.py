@@ -87,7 +87,8 @@ class DataFromFile(DataSet):
     DATASET_KEY  = ['patch_size', 'test_size', 'scales', 'test_scale']
     DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
                     'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0]), 
-                    'celeba' : ((50, 40), (50, 40), [50.0 / 218.0], [50.0 / 218.0])}
+                    'celeba' : ((50, 40), (50, 40), [50.0 / 218.0], [50.0 / 218.0]),
+                    'artwork' : ((64, 64), (64, 64), np.linspace(0.1, 1.0, 10), np.linspace(0.1, 1.0, 10))}
 
     def __init_para(self, args):        
         for idx, key in enumerate(self.DATASET_KEY):
@@ -98,8 +99,8 @@ class DataFromFile(DataSet):
     def __init__(self, args, test_mode=False):
         self.__init_para(args)
 
-        self.train_folder = os.path.join('utils', args.data_path, 'train')
-        self.test_folder = os.path.join('utils', args.data_path, 'test')
+        self.train_folder = os.path.join('utils', 'dataset', args.data_path, 'train')
+        self.test_folder = os.path.join('utils', 'dataset', args.data_path, 'test')
 
         self.test_images = []
         self.linear = args.linear
@@ -140,10 +141,10 @@ class DataFromFile(DataSet):
 class MNIST(DataSet):
     def __init__(self):
         # load MNIST dataset
-        train = torchvision.datasets.MNIST('./utils', train=True, download=True,
+        train = torchvision.datasets.MNIST('./utils/dataset', train=True, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor()])).data
-        test = torchvision.datasets.MNIST('./utils', train=False, download=True,
+        test = torchvision.datasets.MNIST('./utils/dataset', train=False, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor()])).data
         mnist = torch.cat([train, test])

@@ -1,10 +1,7 @@
 __pycache__/
-/utils/islvrc/
-/utils/lfw/
-/utils/celeba/
-/utils/highres/
-/utils/artwork/
-/utils/MNIST/
+/utils/dataset
+/assets/*
 .*
 *.log
 *.npy
+*.ipynb

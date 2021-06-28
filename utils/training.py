@@ -105,7 +105,8 @@ def train_parallel(rank, world_size, args):
 
     # start optimization
     if rank == 0:
-        print('dataset loaded, start optimization')
+        print('load dataset size %d, start optimization' \
+		% dataset.train_set().shape[0])
 
     train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
 
