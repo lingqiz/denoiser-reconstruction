@@ -5,12 +5,12 @@ from tqdm import tqdm
 
 # denoiser demo
 def plot_denoiser(test, model, noise, n_plot, device='cpu', gamma=True):
-    result = test_model(test, model, noise=noise, device=device)    
-    
+    result = test_model(test, model, noise=noise, device=device)
+
     psnr = np.mean(result[0], axis=1)
     print('psnr in: %.2f, out: %.2f' % (psnr[0], psnr[1]))
 
-    sample_idx = np.random.choice(range(test.shape[0]), 
+    sample_idx = np.random.choice(range(test.shape[0]),
                                   size=n_plot, replace=False)
 
     fig, axs = plt.subplots(3, n_plot, figsize=(3 * n_plot, 9))
@@ -32,20 +32,20 @@ def eval_denoiser(test, model, device='cpu'):
 
     psnr_in = np.zeros([len(noise_level), 1])
     psnr_out = np.zeros([len(noise_level), test.shape[0]])
-    
+
     sd_true = np.zeros(len(noise_level))
     sd_est  = np.zeros(len(noise_level))
-    
+
     # run denoising on the test set
     for idx, noise in enumerate(noise_level):
         psnr, test, noise, denoise = test_model(test, model, noise, device)
 
         psnr_in[idx] = psnr[0, ].mean()
         psnr_out[idx, ] = psnr[1, ]
-        
+
         sd_true[idx] = np.std(noise - test)
         sd_est[idx]  = np.std(denoise - noise)
-        
+
     return (psnr_in, psnr_out, sd_true, sd_est)
 
 # sample from a prior
@@ -60,7 +60,7 @@ def plot_sample(model, beta, im_size, n_sample=25, mu=0.25, gamma=True):
     for idx, ax in zip(range(n_sample), axs.flat):
         image = np.clip(samples[idx], 0, 1)
         image = gamma_correct(image) if gamma else image
-        
+
         ax.imshow(image)
         ax.axis('off')
 
@@ -70,21 +70,21 @@ def plot_sample(model, beta, im_size, n_sample=25, mu=0.25, gamma=True):
 # read render array into numpy format
 def read_array(file_path):
     data = h5py.File(file_path, 'r')
-    
+
     img_size = np.array(data['imageSize'])
     ecc_x = np.array(data['eccX'])
     ecc_y = np.array(data['eccY'])
-    
+
     ny, nx = data['renderArray'].shape
-    
+
     # init array
-    array = [[0 for y in range(ny)] 
+    array = [[0 for y in range(ny)]
              for x in range(nx)]
-    
+
     # read matrices from data
     for x in range(nx):
         for y in range(ny):
-            array[x][y] = np.array(data[data['renderArray'][y][x]], 
+            array[x][y] = np.array(data[data['renderArray'][y][x]],
                                    dtype=np.single)
-            
+
     return (array, img_size, (nx, ny), (ecc_x, ecc_y))

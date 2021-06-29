@@ -7,9 +7,9 @@ def sample_patch(image, scales, patch_size):
     samples = []
     for scale in scales:
         # cv2 resize (width, height)
-        resized = cv2.resize(image, 
+        resized = cv2.resize(image,
                 (int(image.shape[1] * scale), int(image.shape[0] * scale)))
-        
+
         ih, iw = (resized.shape[0], resized.shape[1])
         ph, pw = patch_size
 
@@ -26,17 +26,17 @@ GAMMA_TABLE = scipy.io.loadmat('./assets/gamma.mat')['gammaTable']
 def gamma_linear(image):
     image_linear = np.zeros(image.shape)
     for idx in range(image.shape[-1]):
-        image_linear[:, :, idx] = np.interp(image[:, :, idx], 
+        image_linear[:, :, idx] = np.interp(image[:, :, idx],
             np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]), GAMMA_TABLE[:, idx])
-    
+
     return image_linear
 
 def gamma_correct(image):
     image_correct = np.zeros(image.shape)
     for idx in range(image.shape[-1]):
-        image_correct[:, :, idx] = np.interp(image[:, :, idx], 
+        image_correct[:, :, idx] = np.interp(image[:, :, idx],
             GAMMA_TABLE[:, idx], np.linspace(0.0, 1.0, GAMMA_TABLE.shape[0]))
-    
+
     return image_correct
 
 # test image denoising model
@@ -48,9 +48,9 @@ def test_model(test_set, model, noise, device):
 
     with torch.no_grad():
         residual = model(test_noise.to(device))
-    
+
     noise_set = np.clip(test_noise.permute(0, 2, 3, 1).numpy(), 0, 1)
-    denoise_set = np.clip((test_noise - 
+    denoise_set = np.clip((test_noise -
         residual.detach().cpu()).permute(0, 2, 3, 1).numpy(), 0, 1)
 
     # calculate the PSNR for each test images
@@ -70,10 +70,10 @@ class DataSet:
     def load_dataset(args, test_mode=False):
         # mnist is loaded directly through torchvision
         if args.data_path == 'mnist':
-            return MNIST()        
+            return MNIST()
         if args.data_path == 'artwork':
             return SingleImage(args, test_mode)
-        
+
         # load other dataset from files
         return DataFromFile(args, test_mode)
 
@@ -87,13 +87,13 @@ class DataSet:
 
 class DataFromFile(DataSet):
     DATASET_KEY  = ['patch_size', 'test_size', 'scales', 'test_scale']
-    DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]), 
-                    'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0]), 
+    DATASET_PARA = {'islvrc' : ((48, 48), (128, 128), [1.0, 0.80, 0.60, 0.40, 0.20], [0.5]),
+                    'lfw' : ((128, 128), (128, 128), [128.0 / 250.0], [128.0 / 250.0]),
                     'celeba' : ((50, 40), (50, 40), [50.0 / 218.0], [50.0 / 218.0]),
                     'artwork' : ((128, 128), (128, 128), \
                                  np.linspace(0.5, 1.0, 4), np.linspace(0.5, 1.0, 4))}
 
-    def __init_para(self, args):        
+    def __init_para(self, args):
         for idx, key in enumerate(self.DATASET_KEY):
             if getattr(args, key) is None:
                 setattr(args, key, self.DATASET_PARA[args.data_path][idx])
@@ -107,7 +107,7 @@ class DataFromFile(DataSet):
 
         self.test_images = []
         self.linear = args.linear
-        
+
         # sample individual patches for training
         self.train_patches = []
         if not test_mode:
@@ -120,7 +120,7 @@ class DataFromFile(DataSet):
                             self.train_patches.append(sample)
             # training set
             self.train_patches = np.stack(self.train_patches)
-        
+
         # sample for testing set
         test_size = args.test_size
         test_scale = args.test_scale
@@ -156,8 +156,8 @@ class MNIST(DataSet):
         all_image = []
         for sample in mnist:
             sample = sample.numpy()
-                
-            image = np.empty([28, 28, 3])    
+
+            image = np.empty([28, 28, 3])
             image[sample == 0, :] = np.random.rand(3, )
             image[sample != 0, :] = np.random.rand(3, )
 
@@ -165,14 +165,14 @@ class MNIST(DataSet):
 
         all_image = np.stack(all_image)
         np.random.shuffle(all_image)
-        
+
         n_test = 500
         self.test_patches = all_image[:n_test, :]
         self.train_patches = all_image[n_test:, :]
-        
+
 class SingleImage(DataFromFile):
     def __init__(self, args, test_mode=False):
         DataFromFile.__init__(self, args, test_mode)
-        
+
         # make copies of the training set
         self.train_patches = np.repeat(self.train_patches, repeats=100, axis=0)

@@ -7,7 +7,7 @@ import argparse, torch, os, torch.multiprocessing as mp
 # run argument parser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
-    
+
     # option/mode for the script
     parser.add_argument('-f',
                         required=False,
@@ -22,10 +22,10 @@ def args():
                         default='./assets/conv3_ln.pt')
 
     # arguments for network training
-    parser.add_argument('--batch_size', 
+    parser.add_argument('--batch_size',
                         type=int, default=128,
                         help='input batch size for training')
-    parser.add_argument('--n_epoch', 
+    parser.add_argument('--n_epoch',
                         type=int,
                         default=100,
                         help='number of epochs to train')
@@ -54,9 +54,9 @@ def args():
     parser.add_argument('--linear',
                         type=bool,
                         default=True)
-    parser.add_argument('--patch_size', 
+    parser.add_argument('--patch_size',
                         default=None)
-    parser.add_argument('--test_size', 
+    parser.add_argument('--test_size',
                         default=None)
     parser.add_argument('--scales',
                         default=None)
@@ -86,7 +86,7 @@ def args():
 
 args = args()
 
-def train(args):    
+def train(args):
     # train with DDP and Multi-GPUs
     if args.ddp:
         world_size = torch.cuda.device_count()
@@ -96,22 +96,22 @@ def train(args):
         os.environ['MASTER_PORT'] = '12355'
 
         args.seed = randint(0, 65535)
-        mp.spawn(train_parallel, nprocs=world_size, 
+        mp.spawn(train_parallel, nprocs=world_size,
         args=(world_size, args))
 
     # train with single GPU (or CPUs)
     else:
         # denoiser conv net
         model = Denoiser(args)
-        print('number of parameters is ', 
+        print('number of parameters is ',
             sum(p.numel() for p in model.parameters()))
 
         # load dataset
         print('load training data')
         dataset = DataSet.load_dataset(args)
-        
+
         print('start training')
-        model = train_denoiser(dataset.train_set(), 
+        model = train_denoiser(dataset.train_set(),
                 dataset.test_set(), model, args)
 
         # save trained model
@@ -139,11 +139,11 @@ def test(args):
     print('input psnr: ', ['%.2f' % val for val in input_psnr])
     print('output psnr: ', ['%.2f' % val for val in output_psnr])
 
-    return (input_psnr, output_psnr)    
+    return (input_psnr, output_psnr)
 
 if __name__ == '__main__':
     if args.mode == 'train':
         train(args)
-    
+
     if args.mode == 'test':
         test(args)

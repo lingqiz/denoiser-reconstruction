@@ -40,14 +40,14 @@ def sample_prior(model, init, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
         if sigma > div_thld:
             warnings.warn('Divergence detected, resample with \
                 larger step size and tolerance.', RuntimeWarning)
-                
-            return sample_prior(model, init, 
+
+            return sample_prior(model, init,
             h_init, beta * 2, sig_end * 2, stride)
 
-        # inject noise        
+        # inject noise
         gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
         noise = torch.randn(size=y.size(), device=device)
-        
+
         # update image
         y = y + h * d + gamma * noise
 

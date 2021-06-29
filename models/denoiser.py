@@ -7,16 +7,16 @@ class Denoiser(nn.Module):
     A simple CNN for image denoising.
     The network takes noisy images as input and returns residual.
 
-    The additive bias term is removed from the network, 
+    The additive bias term is removed from the network,
     including both the convolutional and batch normalization layers.
 
     See https://arxiv.org/abs/1906.05478
-    """ 
+    """
 
     def __init__(self, args):
         super().__init__()
-        
-        # parameters for the convolution 
+
+        # parameters for the convolution
         self.padding = args.padding
         self.num_kernels = args.num_kernels
         self.kernel_size = args.kernel_size
@@ -26,13 +26,13 @@ class Denoiser(nn.Module):
         # network layers
         self.relu = nn.ReLU(inplace=True)
         self.conv_layers = nn.ModuleList([])
-        
+
         #  approximate batch normalization without the additive bias term
         gamma_init = (torch.randn((self.num_layers - 2, 1, self.num_kernels, 1, 1)) \
             * (2. / 9. / 64.)).clamp_(-0.025, 0.025)
         self.gammas = nn.Parameter(gamma_init, requires_grad=True)
 
-        self.register_buffer('running_sd', 
+        self.register_buffer('running_sd',
             torch.ones([self.num_layers - 2, 1, self.num_kernels, 1, 1]))
 
         # add first conv layers
@@ -40,10 +40,10 @@ class Denoiser(nn.Module):
 
         for idx in range(self.num_layers - 2):
             self.__add_layer(ch_in=self.num_kernels, ch_out=self.num_kernels)
-                        
+
         # add last conv layer
         self.__add_layer(ch_in=self.num_kernels, ch_out=self.im_channels)
-        
+
         # weight init
         self.__weight_init()
 
@@ -80,5 +80,5 @@ class Denoiser(nn.Module):
                     x = x / self.running_sd[idx - 1].expand_as(x)
                     x = x * self.gammas[idx - 1].expand_as(x)
             x = self.relu(x)
-        
+
         return self.conv_layers[-1](x)

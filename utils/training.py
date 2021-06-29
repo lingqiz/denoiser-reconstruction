@@ -9,7 +9,7 @@ import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DSP
 
-def sample_noise(size, noise_level):    
+def sample_noise(size, noise_level):
     noise = torch.empty(size=size)
     for idx in range(int(size[0])):
         noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
@@ -20,7 +20,7 @@ def sample_noise(size, noise_level):
 def train_run(model, train_set, test_set, sampler, rank, args):
     # setup for training
     optimizer = Adam(model.parameters(), lr=args.lr)
-    scheduler = MultiStepLR(optimizer, 
+    scheduler = MultiStepLR(optimizer,
                 milestones=args.decay_epoch, gamma=args.decay_rate)
     criterion = nn.MSELoss()
     scaler = GradScaler()
@@ -37,7 +37,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
 
         for count, batch in enumerate(train_set):
             optimizer.zero_grad(set_to_none=True)
-            
+
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(rank)
             noise = sample_noise(batch.size(), args.noise_level).to(rank)
@@ -45,7 +45,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
 
             # auto mixed precision forward pass
             with autocast():
-                # the network takes noisy images as input 
+                # the network takes noisy images as input
                 # and returns residual (i.e., skip connections)
                 residual = model(noise_input)
                 loss = criterion(residual, noise)
@@ -56,13 +56,13 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             scaler.scale(loss).backward()
             scaler.step(optimizer)
             scaler.update()
-            
+
         scheduler.step()
-        
+
         if rank == 0 or rank == 'cpu':
             # print some diagnostic information
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
-            
+
             psnr = test_model(test_set, model, noise=128.0, device=rank)[0].mean(axis=1)
             print('average loss %.6f' % (total_loss / float(count + 1)))
             print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
@@ -74,26 +74,26 @@ def train_denoiser(train_set, test_set, model, args):
     # training with GPU if available
     rank = (0 if torch.cuda.is_available() else 'cpu')
     model = model.to(rank)
-    
+
     print('load dataset size %d, start optimization' \
           % train_set.shape[0])
-    
+
     # training dataset
-    train_set = DataLoader(train_set, batch_size=args.batch_size, 
+    train_set = DataLoader(train_set, batch_size=args.batch_size,
                 shuffle=True, pin_memory=True)
 
     train_run(model, train_set, test_set, sampler=False, rank=rank, args=args)
     return model.eval().cpu()
 
 # training with Distributed Data Parallel (process level parallelism)
-def train_parallel(rank, world_size, args):    
-    dist.init_process_group("nccl", init_method='env://', 
+def train_parallel(rank, world_size, args):
+    dist.init_process_group("nccl", init_method='env://',
                             rank=rank, world_size=world_size)
-    
+
     # wrap the model with DDP
-    # In DDP, the constructor, the forward pass, 
+    # In DDP, the constructor, the forward pass,
     # and the backward pass are distributed synchronization points
-    model = Denoiser(args).to(rank)    
+    model = Denoiser(args).to(rank)
     model = DDP(model, device_ids=[rank])
 
     # setup dataset

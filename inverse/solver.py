@@ -8,7 +8,7 @@ class RenderMatrix:
 
     def measure(self, x):
         '''
-        Given (orthogonalized) render matrix R 
+        Given (orthogonalized) render matrix R
         and image x, compute the measurement
 
         A transpose is required due to different
@@ -21,7 +21,7 @@ class RenderMatrix:
         '''
         From measurement to image space
         '''
-        
+
         return torch.matmul(self.R.T, msmt).reshape(self.im_size).transpose(1, 2)
 
 class ArrayMatrix:
@@ -29,58 +29,58 @@ class ArrayMatrix:
     Generalization of the RenderMatrix class to an array
     of matrices that tile through larger images
     '''
-    
+
     def __init__(self, array, array_size, im_size, device):
         self.device = device
         self.nx = array_size[0]
         self.ny = array_size[0]
-        
+
         # im_size[1] == im_size[2]
         self.im_size = im_size
         self.edge = im_size[1]
-        
+
         for idx in range(self.nx):
             for idy in range(self.ny):
                 array[idx][idy] = torch.tensor(array[idx][idy].astype('float32')).to(device)
-                
+
         self.array = array
-        
+
     def measure(self, x):
         '''
         Measurement array from a set of matrices
         '''
 
         # init
-        msmt = [[0 for y in range(self.ny)] 
+        msmt = [[0 for y in range(self.ny)]
                       for x in range(self.nx)]
-        
+
         # loop through matrices
         for idx in range(self.nx):
             for idy in range(self.ny):
-                sliced = x[:, idy * self.edge : (idy + 1) * self.edge, 
+                sliced = x[:, idy * self.edge : (idy + 1) * self.edge,
                           idx * self.edge : (idx + 1) * self.edge]
 
                 msmt[idx][idy] = \
-                    torch.matmul(self.array[idx][idy], 
+                    torch.matmul(self.array[idx][idy],
                                  sliced.transpose(1, 2).flatten())
         return msmt
-    
+
     def recon(self, msmt):
         '''
         From an array of measurements to image space
         '''
-        
+
         # init
-        recon = torch.empty(size=(3, self.ny * self.edge, 
-                                  self.nx * self.edge), 
+        recon = torch.empty(size=(3, self.ny * self.edge,
+                                  self.nx * self.edge),
                             device=self.device)
-        
+
         # loop through measurements
         for idx in range(self.nx):
             for idy in range(self.ny):
                 sliced = torch.matmul(self.array[idx][idy].T, msmt[idx][idy])
-                
-                recon[:, idy * self.edge : (idy + 1) * self.edge, 
+
+                recon[:, idy * self.edge : (idy + 1) * self.edge,
                       idx * self.edge : (idx + 1) * self.edge] = \
                 sliced.reshape(self.im_size).transpose(1, 2)
 
@@ -90,7 +90,7 @@ class ArrayMatrix:
 def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.eval().to(device)
-    
+
     # helper function for pytorch image to numpy image
     numpy_image = lambda y: y.squeeze(0).permute(1, 2, 0).cpu().numpy()
 
@@ -117,8 +117,8 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
         h = (h_init * t) / (1 + h_init * (t - 1))
 
         # projected log prior gradient
-        d = log_grad(y).squeeze(0)        
-        d = (d - R_T(R(d)) + R_T(msmt) - 
+        d = log_grad(y).squeeze(0)
+        d = (d - R_T(R(d)) + R_T(msmt) -
             R_T(R(y.squeeze(0)))).unsqueeze(0)
 
         # noise magnitude
@@ -130,7 +130,7 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
             warnings.warn('Divergence detected, resample with \
                 larger step size and tolerance.', RuntimeWarning)
 
-            return linear_inverse(model, render, msmt, 
+            return linear_inverse(model, render, msmt,
             h_init, beta * 2, sig_end * 2, stride)
 
         # inject noise
@@ -145,7 +145,7 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
             all_ys.append(numpy_image(y))
 
         t += 1
-    
+
     all_ys.append(numpy_image(y + log_grad(y)))
     return all_ys
 
