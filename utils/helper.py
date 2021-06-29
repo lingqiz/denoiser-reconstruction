@@ -11,7 +11,7 @@ def plot_denoiser(test, model, noise, n_plot, device='cpu', gamma=True):
     print('psnr in: %.2f, out: %.2f' % (psnr[0], psnr[1]))
 
     sample_idx = np.random.choice(range(test.shape[0]), 
-                                  size=n_plot)
+                                  size=n_plot, replace=False)
 
     fig, axs = plt.subplots(3, n_plot, figsize=(3 * n_plot, 9))
     for idx in range(n_plot):

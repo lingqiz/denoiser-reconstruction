@@ -175,4 +175,4 @@ class SingleImage(DataFromFile):
         DataFromFile.__init__(self, args, test_mode)
         
         # make copies of the training set
-        self.train_patches = np.repeat(self.train_patches, 100, axis=0)
+        self.train_patches = np.repeat(self.train_patches, repeats=100, axis=0)
