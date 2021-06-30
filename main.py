@@ -87,8 +87,21 @@ def args():
 args = args()
 
 def train(args):
+    # load dataset
+    print('start loading training data')
+
+    dataset = DataSet.load_dataset(args)
+    train_set = torch.from_numpy(dataset.train_set())
+    test_set  = torch.from_numpy(dataset.test_set())
+
+    print('dataset loaded, size %d' % train_set.size()[0])
+
     # train with DDP and Multi-GPUs
     if args.ddp:
+        # move dataset to shared memory
+        train_set.share_memory_()
+        test_set.share_memory_()
+
         world_size = torch.cuda.device_count()
         print('model training with %d GPUs' % world_size)
 
@@ -97,7 +110,7 @@ def train(args):
 
         args.seed = randint(0, 65535)
         mp.spawn(train_parallel, nprocs=world_size,
-        args=(world_size, args))
+        args=(world_size, train_set, test_set, args))
 
     # train with single GPU (or CPUs)
     else:
@@ -106,13 +119,8 @@ def train(args):
         print('number of parameters is ',
             sum(p.numel() for p in model.parameters()))
 
-        # load dataset
-        print('load training data')
-        dataset = DataSet.load_dataset(args)
-
         print('start training')
-        model = train_denoiser(dataset.train_set(),
-                dataset.test_set(), model, args)
+        model = train_denoiser(train_set, test_set, model, args)
 
         # save trained model
         print('save model parameters')

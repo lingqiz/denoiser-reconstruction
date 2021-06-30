@@ -75,9 +75,6 @@ def train_denoiser(train_set, test_set, model, args):
     rank = (0 if torch.cuda.is_available() else 'cpu')
     model = model.to(rank)
 
-    print('load dataset size %d, start optimization' \
-          % train_set.shape[0])
-
     # training dataset
     train_set = DataLoader(train_set, batch_size=args.batch_size,
                 shuffle=True, pin_memory=True)
@@ -86,7 +83,7 @@ def train_denoiser(train_set, test_set, model, args):
     return model.eval().cpu()
 
 # training with Distributed Data Parallel (process level parallelism)
-def train_parallel(rank, world_size, args):
+def train_parallel(rank, world_size, train_set, test_set, args):
     dist.init_process_group("nccl", init_method='env://',
                             rank=rank, world_size=world_size)
 
@@ -96,20 +93,10 @@ def train_parallel(rank, world_size, args):
     model = Denoiser(args).to(rank)
     model = DDP(model, device_ids=[rank])
 
-    # setup dataset
-    dataset = DataSet.load_dataset(args)
-    train_set = dataset.train_set()
-    test_set = dataset.test_set()
-
     # load training dataset
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
     train_set = DataLoader(train_set, batch_size=args.batch_size, drop_last=True,
                 shuffle=False, pin_memory=True, sampler=data_sampler)
-
-    # start optimization
-    if rank == 0:
-        print('load dataset size %d, start optimization' \
-              % dataset.train_set().shape[0])
 
     train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
 
