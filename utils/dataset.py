@@ -43,10 +43,14 @@ def gamma_correct(image):
 def test_model(test_set, model, noise, device):
     model.eval()
 
-    if not (type(test_set) is torch.Tensor):
-        test_set = torch.from_numpy(test_set)
+    # make sure things are the right data type
+    if type(test_set) is torch.Tensor:
+        test_torch = test_set.cpu()
+        test_set = test_set.numpy()
+    else:
+        test_torch = torch.from_numpy(test_set)
 
-    test_torch = test_set.permute(0, 3, 1, 2).contiguous()
+    test_torch = test_torch.permute(0, 3, 1, 2).contiguous()
     test_noise = test_torch + torch.normal(0, noise / 255.0, size=test_torch.size())
 
     with torch.no_grad():
