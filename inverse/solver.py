@@ -125,8 +125,9 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
         sigma = torch.norm(d) / np.sqrt(n)
 
         # protect against divergence
-        div_thld = 1e2
-        if sigma > div_thld:
+        div_thld  = 1e2
+        iter_thld = 1e4
+        if sigma > div_thld or t > iter_thld:
             warnings.warn('Divergence detected, resample with \
                 larger step size and tolerance.', RuntimeWarning)
 
