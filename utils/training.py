@@ -1,11 +1,11 @@
 import torch, torch.nn as nn, time, datetime, random
+import torch.distributed as dist
 from models.denoiser import Denoiser
 from torch.optim import Adam
 from torch.optim.lr_scheduler import MultiStepLR
 from torch.utils.data import DataLoader
 from torch.cuda.amp import autocast, GradScaler
-from utils.dataset import DataSet, test_model
-import torch.distributed as dist
+from utils.dataset import test_model
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DSP
 
