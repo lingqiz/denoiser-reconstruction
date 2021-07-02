@@ -87,26 +87,35 @@ class ArrayMatrix:
         return recon
 
 # sample from prior with linear constraint (render matrix)
-def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
+def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01, stride=10, with_grad=False):
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.eval().to(device)
 
     # helper function for pytorch image to numpy image
-    numpy_image = lambda y: y.squeeze(0).permute(1, 2, 0).cpu().numpy()
+    numpy_image = lambda y: y.detach().cpu().squeeze(0).permute(1, 2, 0).numpy()
 
     # the network calculates the noise residual
-    def log_grad(y):
-        with torch.no_grad():
-            return - model(y)
+    if with_grad:
+        log_grad = lambda y: - model(y)
+    else:
+        def log_grad(y):
+            with torch.no_grad():
+                return - model(y)
 
+    # measurement matrix calculation
     R = render.measure
     R_T = render.recon
 
     # init variables
-    e = torch.ones_like(R_T(msmt))
+    if input.dim() == 1:
+        proj = R_T(input)
+    elif input.dim() == 3:
+        proj = R_T(R(input))
+
+    e = torch.ones_like(proj)
     n = torch.numel(e)
 
-    mu = 0.5 * (e - R_T(R(e))) + R_T(msmt)
+    mu = 0.5 * (e - R_T(R(e))) + proj
     y = torch.normal(mean=mu, std=1.0).unsqueeze(0).to(device)
     sigma = torch.norm(log_grad(y)) / np.sqrt(n)
 
@@ -118,7 +127,7 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
 
         # projected log prior gradient
         d = log_grad(y).squeeze(0)
-        d = (d - R_T(R(d)) + R_T(msmt) -
+        d = (d - R_T(R(d)) + proj -
             R_T(R(y.squeeze(0)))).unsqueeze(0)
 
         # noise magnitude
@@ -131,7 +140,7 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
             warnings.warn('Divergence detected, resample with \
                 larger step size and tolerance.', RuntimeWarning)
 
-            return linear_inverse(model, render, msmt,
+            return linear_inverse(model, render, input,
             h_init, beta * 2, sig_end * 2, stride)
 
         # inject noise
@@ -147,6 +156,11 @@ def linear_inverse(model, render, msmt, h_init=0.01, beta=0.01, sig_end=0.01, st
 
         t += 1
 
-    all_ys.append(numpy_image(y + log_grad(y)))
+    final = y + log_grad(y)
+    all_ys.append(numpy_image(final))
+
+    if with_grad:
+        return final.squeeze(0), t, all_ys
+
     return all_ys
 
