@@ -77,7 +77,7 @@ def train_denoiser(train_set, test_set, model, args):
 
     # training dataset
     train_set = DataLoader(train_set, batch_size=args.batch_size,
-                shuffle=True, pin_memory=True)
+                shuffle=True, num_workers=4, pin_memory=True)
 
     train_run(model, train_set, test_set, sampler=False, rank=rank, args=args)
     return model.eval().cpu()
@@ -96,7 +96,7 @@ def train_parallel(rank, world_size, train_set, test_set, args):
     # load training dataset
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
     train_set = DataLoader(train_set, batch_size=args.batch_size, drop_last=True,
-                shuffle=False, pin_memory=True, sampler=data_sampler)
+                shuffle=False, num_workers=4, pin_memory=True, sampler=data_sampler)
 
     train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
 
