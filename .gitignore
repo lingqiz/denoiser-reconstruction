@@ -1,5 +1,7 @@
 __pycache__/
 /utils/dataset
+/recon
+/notebook
 /assets/*
 .*
 *.log
