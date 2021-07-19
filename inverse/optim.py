@@ -1,14 +1,15 @@
 import torch
 from torch.nn import MSELoss
-from solver import linear_inverse
+from inverse.solver import linear_inverse
 
+# constants associated with the function
 MSE = MSELoss(reduction='mean')
 IDENTITY = lambda x: x
 CLAMP= lambda x: x.clamp_(0, 1)
-
 H_INIT = 0.50
 BETA = 0.25
 
+# difference maximization
 def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
             distance=MSE, generator=IDENTITY, constraint=CLAMP):
 
