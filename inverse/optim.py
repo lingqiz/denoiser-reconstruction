@@ -20,7 +20,7 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
 
         image_in = generator(init)
         recon, t, _ = linear_inverse(model, render, image_in,
-                        h_init=H_INIT, beta=BETA, stride=0, with_grad=True)
+                        h_init=H_INIT, beta=BETA, stride=0, seed=0, with_grad=True)
 
         # compute the distance between reconstruction and input
         loss = distance(recon, image_in)

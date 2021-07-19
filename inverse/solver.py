@@ -87,7 +87,11 @@ class ArrayMatrix:
         return recon
 
 # sample from prior with linear constraint (render matrix)
-def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01, stride=10, with_grad=False):
+def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
+                    stride=10, seed=None, with_grad=False):
+    if not (seed is None):
+        torch.manual_seed(seed)
+
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.eval().to(device)
 
