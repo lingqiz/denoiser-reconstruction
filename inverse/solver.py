@@ -96,7 +96,8 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
     model = model.eval().to(device)
 
     # helper function for pytorch image to numpy image
-    numpy_image = lambda y: y.detach().cpu().squeeze(0).permute(1, 2, 0).numpy()
+    numpy_image = lambda y: y.detach().cpu() \
+                .squeeze(0).permute(1, 2, 0).numpy()
 
     # the network calculates the noise residual
     if with_grad:
