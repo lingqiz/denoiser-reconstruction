@@ -1,6 +1,7 @@
 import torch
 from torch.nn import MSELoss
 from inverse.solver import linear_inverse
+from plenoptic.synthesize.eigendistortion import Eigendistortion
 
 # constants associated with the function
 MSE = MSELoss(reduction='mean')
@@ -38,3 +39,33 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
             constraint(init)
 
     return init, recon, sequence
+
+# eigendistortion
+def eig_distort(model, input_set, alpha=1.0, max_steps=1000):
+
+    distort_set = (([], [], []),
+                    ([], [], []))
+
+    for image in input_set:
+        image = image.unsqueeze(0)
+        eig_obj = Eigendistortion(base_signal=image,
+                                  model=model)
+
+        eigdist = eig_obj.synthesize(method='power',
+                                     tol=1e-5,
+                                     max_steps=max_steps)[0]
+
+    to_numpy = lambda t: t.detach().cpu().squeeze(0)\
+                            .permute(1, 2, 0).numpy()
+
+    for idx in range(2):
+        eig_dir = eigdist[idx, :].unsqueeze(0)
+        distort_set[idx][0].append(to_numpy(eig_dir))
+
+        dist = image + alpha * eig_dir
+        distort_set[idx][1].append(to_numpy(dist))
+
+        output = model(dist)
+        distort_set[idx][2].append(to_numpy(output))
+
+    return distort_set
