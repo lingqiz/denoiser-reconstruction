@@ -81,7 +81,7 @@ def args():
                         default=3)
 
     # parse arguments and check
-    args = parser.parse_args()
+    args, _ = parser.parse_known_args()
     return args
 
 args = args()
