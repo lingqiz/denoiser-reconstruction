@@ -76,3 +76,39 @@ def eig_distort(model, input_set, alpha=1.0, tol=1e-5, max_steps=1000):
             distort_set[idx][2].append(to_numpy(output))
 
     return distort_set
+
+# helper object for fill-in optimization
+class FillIn():
+    def __init__(self, im_size, device):
+        self.im_size = im_size
+        self.device = device
+
+    def _mask(self, radius=0.5):
+        mask = np.ones(shape=self.im_size)
+
+        x, y = np.meshgrid(np.linspace(-1, 1, num=mask.shape[1]),
+                           np.linspace(1, -1, num=mask.shape[2]))
+        indice = (np.sqrt(x ** 2 + y ** 2)) < radius
+
+        mask[:, indice] = 0.0
+        mask = torch.from_numpy(mask.astype(np.float32))\
+                                .to(self.device)
+        flip = (1.0 - mask).to(self.device)
+        return (mask, flip)
+
+    def _generator_fn(self, mask, flip):
+        return lambda t: t * mask + flip * 0.5
+
+    def _distance_fn(self, flip, spatial=False):
+        if spatial:
+            return lambda x, y: MSE((x * flip).mean(dim=0),
+                                    (y * flip).mean(dim=0))
+        else:
+            return lambda x, y: MSE(x * flip, y * flip)
+
+    def get_objective(self, radius=0.5, spatial=False):
+        mask, flip = self._mask(radius)
+        generator = self._generator_fn(mask, flip)
+        distance = self._distance_fn(flip, spatial)
+
+        return generator, distance
