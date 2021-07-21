@@ -1,3 +1,4 @@
+from numpy.core.numeric import Inf
 import torch, numpy as np
 import warnings
 
@@ -88,7 +89,7 @@ class ArrayMatrix:
 
 # sample from prior with linear constraint (render matrix)
 def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
-                    stride=10, seed=None, with_grad=False):
+                    t_max=float('inf'), stride=10, seed=None, with_grad=False):
     if not (seed is None):
         torch.manual_seed(seed)
 
@@ -160,6 +161,12 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
             all_ys.append(numpy_image(y))
 
         t += 1
+
+        # safe guard for iteration limit
+        # use in conjection with grad=True
+        # for GPU memory limit
+        if with_grad and t > t_max:
+            break
 
     final = y + log_grad(y)
     all_ys.append(numpy_image(final))
