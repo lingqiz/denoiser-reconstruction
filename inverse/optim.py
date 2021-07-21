@@ -30,8 +30,9 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
         grad_norm = torch.norm(init.grad)
 
         if stride != 0 and n % stride == 0:
-            print('iter: %d, n_step: %d, norm: %.4f, loss: %.4f' % (n, t, grad_norm, loss.item()))
             sequence.append(init.detach().cpu())
+            print('iter: %d, n_step: %d, norm: %.4f, loss: %.4f' %
+                    (n, t, grad_norm, loss.item()))
 
         # increase the distance
         with torch.no_grad():
