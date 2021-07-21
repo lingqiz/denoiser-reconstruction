@@ -1,4 +1,4 @@
-import torch
+import torch, numpy as np
 from torch.nn import MSELoss
 from inverse.solver import linear_inverse
 from plenoptic.synthesize.eigendistortion import Eigendistortion
@@ -13,6 +13,7 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
             h_init=0.25, beta=0.25, sig_end=0.01, iter_tol=30, t_max=35,
             distance=MSE, generator=IDENTITY, constraint=CLAMP):
 
+    seed = np.random.randint(0, 2**32)
     sequence = []
     for n in range(int(n_iter)):
         # clear gradient
@@ -21,7 +22,7 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
         image_in = generator(init)
         recon, t, _ = linear_inverse(model, render, image_in,
                         h_init=h_init, beta=beta, sig_end=sig_end,
-                        stride=0, seed=0, t_max=t_max, with_grad=True)
+                        stride=0, seed=seed, t_max=t_max, with_grad=True)
 
         # compute the distance between reconstruction and input
         loss = distance(recon, image_in)
