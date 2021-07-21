@@ -7,11 +7,10 @@ from plenoptic.synthesize.eigendistortion import Eigendistortion
 MSE = MSELoss(reduction='mean')
 IDENTITY = lambda x: x
 CLAMP= lambda x: x.clamp_(0, 1)
-H_INIT = 0.50
-BETA = 0.25
 
 # difference maximization
-def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
+def max_diff(model, render, init, n_iter,
+            opt_norm=0.01, stride=0, h_init=0.25, beta=0.25, iter_tol=32,
             distance=MSE, generator=IDENTITY, constraint=CLAMP):
 
     sequence = []
@@ -21,7 +20,8 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
 
         image_in = generator(init)
         recon, t, _ = linear_inverse(model, render, image_in,
-                        h_init=H_INIT, beta=BETA, stride=0, seed=0, with_grad=True)
+                        h_init=h_init, beta=beta, stride=0, seed=0,
+                        with_grad=True)
 
         # compute the distance between reconstruction and input
         loss = distance(recon, image_in)
@@ -37,6 +37,11 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
         with torch.no_grad():
             init += opt_norm / grad_norm * init.grad
             constraint(init)
+
+        # reduce interation length if needed
+        if t > iter_tol:
+            h_init *= 1.25
+            beta *= 1.25
 
     return init, recon, sequence
 
