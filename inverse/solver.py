@@ -147,7 +147,8 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
                 larger step size and tolerance.', RuntimeWarning)
 
             return linear_inverse(model, render, input,
-            h_init, beta * 2, sig_end * 2, stride)
+                                 h_init, beta * 2, sig_end * 2,
+                                 t_max, stride, seed, with_grad)
 
         # inject noise
         gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
@@ -163,9 +164,9 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
         t += 1
 
         # safe guard for iteration limit
-        # use in conjection with grad=True
+        # (typically) use in conjection with grad=True
         # for GPU memory limit
-        if with_grad and t > t_max:
+        if t > t_max:
             break
 
     final = y + log_grad(y)
