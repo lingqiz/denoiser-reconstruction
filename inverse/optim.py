@@ -24,7 +24,7 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
         image_in = generator(init)
 
         # compute reconstruction and error
-        loss = torch.zeros(1)
+        loss = torch.zeros(1).to(init.device)
         for mtx in render:
             recon, t, _ = linear_inverse(model, mtx, image_in,
                             h_init=h_init, beta=beta, sig_end=sig_end,
