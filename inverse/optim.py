@@ -23,17 +23,20 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
         init.grad = None
         image_in = generator(init)
 
-        # compute reconstruction and error
-        loss = torch.zeros(1).to(init.device)
+        # compute reconstruction for all matrices
+        recon_list = []
         for mtx in render:
             recon, t, _ = linear_inverse(model, mtx, image_in,
                             h_init=h_init, beta=beta, sig_end=sig_end,
                             stride=0, seed=seed, t_max=t_max, with_grad=True)
+            recon_list.append(recon.unsqueeze(0))
 
-            # compute the distance between reconstruction and input
-            loss += distance(recon, image_in)
-
+        # compute the distance between reconstruction and input
+        recon = torch.cat(recon_list, dim=0)
+        loss = distance(recon, image_in.unsqueeze(0)\
+                    .repeat([len(recon_list), 1, 1, 1]))
         loss.backward()
+
         grad_norm = torch.norm(init.grad)
 
         if stride != 0 and n % stride == 0:
@@ -51,7 +54,7 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
             beta *= 1.25
             sig_end *= 2.0
 
-    return init, recon, sequence
+    return init, recon.squeeze(0), sequence
 
 # eigendistortion
 def eig_distort(model, input_set, alpha=1.0, tol=1e-5, max_steps=1000):
