@@ -29,14 +29,15 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
             recon, t, _ = linear_inverse(model, mtx, image_in,
                             h_init=h_init, beta=beta, sig_end=sig_end,
                             stride=0, seed=seed, t_max=t_max, with_grad=True)
+
             recon_list.append(recon.unsqueeze(0))
 
         # compute the distance between reconstruction and input
         recon = torch.cat(recon_list, dim=0)
         loss = distance(recon, image_in.unsqueeze(0)\
                     .repeat([len(recon_list), 1, 1, 1]))
-        loss.backward()
 
+        loss.backward()
         grad_norm = torch.norm(init.grad)
 
         if stride != 0 and n % stride == 0:
