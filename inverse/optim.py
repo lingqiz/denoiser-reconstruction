@@ -188,8 +188,8 @@ class FillInSquare(FillIn):
         mask = np.ones(shape=self.im_size)
         edge_len = self.im_size[1]
 
-        idx_lb = int(edge_len * radius / 2)
-        idx_ub = int(edge_len * (1 - radius / 2))
+        idx_lb = int(edge_len * (1 - radius) / 2)
+        idx_ub = int(edge_len * (1 + radius) / 2)
 
         mask[:, idx_lb:idx_ub, idx_lb:idx_ub] = 0.0
         mask = torch.from_numpy(mask.astype(np.float32))\
