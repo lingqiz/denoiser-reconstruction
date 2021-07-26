@@ -102,10 +102,10 @@ def max_pair(model, render, stimuli, n_iter, opt_norm=0.1, stride=0,
         stim_1, stim_2 = stimuli.get_stimulus()
 
         # compute reconstruction
-        recon1 = recon(stim_1)
-        recon2 = recon(stim_2)
+        recon_1 = recon(stim_1)
+        recon_2 = recon(stim_2)
 
-        loss = distance(recon1, recon2)
+        loss = distance(recon_1, recon_2)
         loss.backward()
 
         grad_norm = stimuli.optim_step(opt_norm)
@@ -114,7 +114,7 @@ def max_pair(model, render, stimuli, n_iter, opt_norm=0.1, stride=0,
             print('iter: %d, norm: %.4f, loss: %.4f' %
                     (n, grad_norm, loss.item()))
 
-    return stimuli, recon1, recon2
+    return stimuli, recon_1, recon_2
 
 # helper object for fill-in optimization
 # base class
