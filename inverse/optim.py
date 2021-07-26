@@ -108,7 +108,7 @@ def max_pair(model, render, stimuli, n_iter, opt_norm=0.1, stride=0,
         loss = distance(recon1, recon2)
         loss.backward()
 
-        grad_norm = stimuli.optim_step()
+        grad_norm = stimuli.optim_step(opt_norm)
 
         if stride != 0 and n % stride == 0:
             print('iter: %d, norm: %.4f, loss: %.4f' %
@@ -182,7 +182,7 @@ class FillInCircle(FillIn):
         return mask, flip
 
 class FillInSquare(FillIn):
-    def _mask(self, radius):
+    def _mask(self, radius=0.5):
         mask = np.ones(shape=self.im_size)
         edge_len = self.im_size[1]
 
