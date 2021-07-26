@@ -90,7 +90,31 @@ def eig_distort(model, input_set, alpha=1.0, tol=1e-5, max_steps=1000):
 # pair difference maximization
 def max_pair(model, render, stimuli, n_iter, opt_norm=0.1, stride=0,
             h_init=0.25, beta=0.25, sig_end=0.01, t_max=35, distance=MSE):
-            pass
+
+    seed = np.random.randint(0, 2**32)
+    recon = lambda input: linear_inverse(model, render, input, h_init=h_init,
+                                    beta=beta, sig_end=sig_end, stride=0,
+                                    seed=seed, t_max=t_max, with_grad=True)[0]
+
+    for n in range(int(n_iter)):
+        # clear gradient
+        stimuli.clear_grad()
+        stim_1, stim_2 = stimuli.get_stimulus()
+
+        # compute reconstruction
+        recon1 = recon(stim_1)
+        recon2 = recon(stim_2)
+
+        loss = distance(recon1, recon2)
+        loss.backward()
+
+        grad_norm = stimuli.optim_step()
+
+        if stride != 0 and n % stride == 0:
+            print('iter: %d, norm: %.4f, loss: %.4f' %
+                    (n, grad_norm, loss.item()))
+
+    return stimuli, recon1, recon2
 
 # helper object for fill-in optimization
 # base class
@@ -132,10 +156,16 @@ class FillIn():
 
         return (stim_1, stim_2)
 
+    def clear_grad(self):
+        self.stim.grad = None
+
     def optim_step(self, opt_norm):
         with torch.no_grad():
-            self.stim += self.stim.grad * opt_norm / torch.norm(self.stim.grad)
+            grad_norm = torch.norm(self.stim.grad)
+            self.stim += self.stim.grad * opt_norm / grad_norm
             self.stim.clamp_(0.0, 1.0)
+
+        return grad_norm
 
 class FillInCircle(FillIn):
     def _mask(self, radius=0.5):
