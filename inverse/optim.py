@@ -119,11 +119,13 @@ def max_pair(model, render, stimuli, n_iter, opt_norm=0.1, stride=0,
 # helper object for fill-in optimization
 # base class
 class FillIn():
-    def __init__(self, im_size, device, radius=0.25, stimuli=False):
+    def __init__(self, im_size, device, radius=0.25, init=None, stimuli=False):
         self.im_size = im_size
         self.device = device
+
         if stimuli:
-            init = np.random.rand(3, *im_size)
+            if init is None:
+                init = np.random.rand(3, *im_size)
             self.stim = torch.tensor(init.astype(np.float32),
                                      requires_grad=True,
                                      device=self.device)
