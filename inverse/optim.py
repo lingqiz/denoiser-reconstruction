@@ -87,24 +87,27 @@ def eig_distort(model, input_set, alpha=1.0, tol=1e-5, max_steps=1000):
 
     return distort_set
 
+# pair difference maximization
+def max_pair(model, render, stimuli, n_iter, opt_norm=0.1, stride=0,
+            h_init=0.25, beta=0.25, sig_end=0.01, t_max=35, distance=MSE):
+            pass
+
 # helper object for fill-in optimization
+# base class
 class FillIn():
-    def __init__(self, im_size, device):
+    def __init__(self, im_size, device, radius=0.25, stimuli=False):
         self.im_size = im_size
         self.device = device
+        if stimuli:
+            init = np.random.rand(3, *im_size)
+            self.stim = torch.tensor(init.astype(np.float32),
+                                     requires_grad=True,
+                                     device=self.device)
+
+            self.mask, self.flip = self._mask(radius=radius)
 
     def _mask(self, radius=0.5):
-        mask = np.ones(shape=self.im_size)
-
-        x, y = np.meshgrid(np.linspace(-1, 1, num=mask.shape[1]),
-                           np.linspace(1, -1, num=mask.shape[2]))
-        indice = (np.sqrt(x ** 2 + y ** 2)) < radius
-
-        mask[:, indice] = 0.0
-        mask = torch.from_numpy(mask.astype(np.float32))\
-                                .to(self.device)
-        flip = (1.0 - mask).to(self.device)
-        return (mask, flip)
+        pass
 
     def _generator_fn(self, mask, flip):
         return lambda t: t * mask + flip * 0.5
@@ -122,3 +125,42 @@ class FillIn():
         distance = self._distance_fn(flip, spatial)
 
         return generator, distance
+
+    def get_stimulus(self):
+        stim_1 = self.stim[1] * self.mask + self.stim[0] * self.flip
+        stim_2 = self.stim[2] * self.mask + self.stim[0] * self.flip
+
+        return (stim_1, stim_2)
+
+    def optim_step(self, opt_norm):
+        with torch.no_grad():
+            self.stim += self.stim.grad * opt_norm / torch.norm(self.stim.grad)
+            self.stim.clamp_(0.0, 1.0)
+
+class FillInCircle(FillIn):
+    def _mask(self, radius=0.5):
+        mask = np.ones(shape=self.im_size)
+
+        x, y = np.meshgrid(np.linspace(-1, 1, num=mask.shape[1]),
+                           np.linspace(1, -1, num=mask.shape[2]))
+        indice = (np.sqrt(x ** 2 + y ** 2)) < radius
+
+        mask[:, indice] = 0.0
+        mask = torch.from_numpy(mask.astype(np.float32))\
+                                .to(self.device)
+        flip = (1.0 - mask).to(self.device)
+        return mask, flip
+
+class FillInSquare(FillIn):
+    def _mask(self, radius):
+        mask = np.ones(shape=self.im_size)
+        edge_len = self.im_size[1]
+
+        idx_lb = int(edge_len * radius / 2)
+        idx_ub = int(edge_len * (1 - radius / 2))
+
+        mask[:, idx_lb:idx_ub, idx_lb:idx_ub] = 0.0
+        mask = torch.from_numpy(mask.astype(np.float32))\
+                                .to(self.device)
+        flip = (1.0 - mask).to(self.device)
+        return mask, flip
