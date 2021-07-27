@@ -175,8 +175,8 @@ class FillIn():
 
         fig, axs = plt.subplots(1, 2, figsize=(10, 5), sharex=True, sharey=True)
         for idx, ax in enumerate(axs.flatten()):
-            ax.imshow(gamma_correct(stim[idx].cpu()\
-                        .permute(1, 2, 0).numpy()))
+            ax.imshow(gamma_correct(stim[idx].detach()\
+                      .cpu().permute(1, 2, 0).numpy()))
             ax.axis('off')
         fig.show()
 
