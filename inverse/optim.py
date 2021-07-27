@@ -170,7 +170,7 @@ class FillIn():
 
         return grad_norm
 
-    def get_recon(self, inverse):
+    def show_recon(self, inverse):
         stim = self.get_stimulus()
 
         fig, axs = plt.subplots(1, 2, figsize=(10, 5), sharex=True, sharey=True)
