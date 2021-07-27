@@ -1,5 +1,6 @@
-import torch, numpy as np
+import torch, numpy as np, matplotlib.pyplot as plt
 from torch.nn import MSELoss
+from utils.dataset import gamma_correct
 from inverse.solver import linear_inverse
 from plenoptic.synthesize.eigendistortion import Eigendistortion
 
@@ -168,6 +169,23 @@ class FillIn():
             self.stim.clamp_(0.0, 1.0)
 
         return grad_norm
+
+    def get_recon(self, inverse):
+        stim = self.get_stimulus()
+
+        fig, axs = plt.subplots(1, 2, figsize=(10, 5), sharex=True, sharey=True)
+        for idx, ax in enumerate(axs.flatten()):
+            ax.imshow(gamma_correct(stim[idx].cpu()\
+                        .permute(1, 2, 0).numpy()))
+            ax.axis('off')
+        fig.show()
+
+        fig, axs = plt.subplots(1, 2, figsize=(10, 5), sharex=True, sharey=True)
+        for idx, ax in enumerate(axs.flatten()):
+            recon = inverse(stim[idx])
+            ax.imshow(gamma_correct(recon))
+            ax.axis('off')
+        fig.show()
 
 class FillInCircle(FillIn):
     def _mask(self, radius=0.5):
