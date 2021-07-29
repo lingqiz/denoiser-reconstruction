@@ -7,6 +7,15 @@ class RenderMatrix:
         self.im_size = im_size
         self.R = R.to(device)
 
+    def _permute(self):
+        '''
+        Random permutation of the rows
+        of the measurement matrix
+        '''
+
+        index = torch.randperm(self.R.size(0))
+        self.R = self.R[index, :]
+
     def measure(self, x):
         '''
         Given (orthogonalized) render matrix R

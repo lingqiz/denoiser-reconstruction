@@ -58,6 +58,46 @@ def max_diff(model, render, init, n_iter, opt_norm=0.01, stride=0,
 
     return init, recon.squeeze(0), sequence
 
+# difference maximization with random permutation of the matrix
+def max_diff_rand(model, render, init, n_iter, opt_norm=0.01, stride=0,
+                  t_max=35, h_init=0.25, beta=0.25, sig_end=0.01, iter_tol=30,
+                  distance=MSE, generator=IDENTITY, constraint=CLAMP):
+
+    seed = np.random.randint(0, 2**32)
+    for n in range(int(n_iter)):
+        # clear gradient
+        init.grad = None
+        image_in = generator(init)
+
+        # compute the reconstruction
+        recon, t, _ = linear_inverse(model, render, image_in, h_init=h_init,
+                                     beta=beta, sig_end=sig_end, stride=0,
+                                     seed=seed, t_max=t_max, with_grad=True)
+
+        loss = distance(recon, image_in)
+        loss.backward()
+
+        # optimization step
+        grad_norm = torch.norm(init.grad)
+        with torch.no_grad():
+            init += opt_norm / grad_norm * init.grad
+            constraint(init)
+
+        # reduce interation length if needed
+        if t >= iter_tol:
+            beta *= 1.25
+            sig_end *= 2.0
+
+        # random permutation of the matrix
+        render._permute()
+
+        # print the progress
+        if stride != 0 and n % stride == 0:
+            print('iter: %d, n_step: %d, norm: %.4f, loss: %.4f' %
+                    (n, t, grad_norm, loss.item()))
+
+    return init, recon
+
 # eigendistortion
 def eig_distort(model, input_set, alpha=1.0, tol=1e-5, max_steps=1000):
 
