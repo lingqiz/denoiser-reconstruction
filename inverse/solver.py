@@ -1,4 +1,3 @@
-from numpy.core.numeric import Inf
 import torch, numpy as np
 import warnings
 
