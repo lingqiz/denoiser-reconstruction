@@ -1,7 +1,60 @@
 import torch, numpy as np
+from abc import ABC, abstractmethod
 import warnings
 
-class RenderMatrix:
+# base class for measurement matrix
+class Measurement(ABC):
+    @abstractmethod
+    def measure(self, x):
+        pass
+
+    @abstractmethod
+    def recon(self, x):
+        pass
+
+# simple measurement matrix with convolution
+# use ConvTranspose2d and Conv2d for projection
+class ConvMatrix(Measurement):
+    def __init__(self, kernel_size, stride, device, channels=3):
+        # use to record image size
+        self.imsize = None
+
+        # conv_transpose work for stride >= kernel_size
+        if stride < kernel_size:
+            raise Warning(f'''Stride ({stride}) should NOT be smaller than kernel size ({kernel_size})
+                                for ConvTranspose2d to act properly as a linear projection''')
+
+        # sampling kernel
+        self.conv = torch.nn.Conv2d(channels, channels, kernel_size, stride,
+                                    groups=channels, bias=False, device=device)
+
+        # inverse operation
+        self.conv_tr = torch.nn.ConvTranspose2d(channels, channels, kernel_size, stride,
+                                                groups=channels, bias=False, device=device)
+
+        # make an averaging conv kernal
+        kernel = torch.ones(channels, 1, kernel_size, kernel_size, device=device)
+        kernel = torch.nn.Parameter(kernel / torch.norm(kernel[0, 0, :, :]))
+
+        self.conv.weight = kernel
+        self.conv_tr.weight = kernel
+
+    # assume calculation requires no gradient
+    # linear measurement
+    def measure(self, x):
+        with torch.no_grad():
+            self.imsize = x.shape[1:]
+            x = self.conv(x.unsqueeze(0))
+            return x.squeeze(0)
+
+    # linear projection
+    def recon(self, x):
+        with torch.no_grad():
+            x = x.unsqueeze(0)
+            x = self.conv_tr(x, output_size=self.imsize)
+            return x.squeeze(0)
+
+class RenderMatrix(Measurement):
     def __init__(self, R, im_size, device):
         self.im_size = im_size
         self.R = R.to(device)
@@ -24,7 +77,7 @@ class RenderMatrix:
 
         return torch.matmul(self.R.T, msmt).reshape(self.im_size).transpose(1, 2)
 
-class ArrayMatrix:
+class ArrayMatrix(Measurement):
     '''
     Generalization of the RenderMatrix class to an array
     of matrices that tile through larger images
