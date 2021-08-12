@@ -1,6 +1,6 @@
 import torch, numpy as np
 import PIL, PIL.ImageDraw, PIL.ImageFont
-from abc import ABC, abstractmethod
+from abc import ABC
 
 # make letter stimulus
 FONT_PATH = './assets/arial.ttf'
@@ -29,6 +29,7 @@ def letter_image(ltr, ltr_size, im_size):
 
     return (image, stim, index.astype(np.int32))
 
+# base class for setting up an array of templates
 class LetterTask(ABC):
     def __init__(self, ltr, ltr_size, im_size):
         self.ltr = ltr
@@ -36,13 +37,6 @@ class LetterTask(ABC):
 
         # setup an array of templates
         self.templates, self.indices = self._make_templates(ltr_size, im_size)
-
-        # generate stimulus
-        self.stimulus = self._make_stimulus(ltr_size, im_size)
-
-    @abstractmethod
-    def _make_stimulus(self, ltr_size, im_size):
-        pass
 
     def _make_templates(self, ltr_size, im_size):
         # produce a set of templates
@@ -75,10 +69,21 @@ class LetterTask(ABC):
 
         return dv, dv[self.tid] - np.mean(dv[mask.astype(bool)])
 
+# class for single letter detection
+class LetterDetection(LetterTask):
+    def __init__(self, ltr, ltr_size, im_size):
+        super().__init__(ltr, ltr_size, im_size)
+
+        # generate stimulus
+        self.stimulus = self._make_stimulus(ltr_size, im_size)
+        self.stim_image = self.stimulus.detach().permute(1, 2, 0).numpy()
+
+    def _make_stimulus(self, ltr_size, im_size):
+        return letter_image(self.ltr, ltr_size=ltr_size, im_size=im_size)[1]
+
     def eval_model(self, model):
         recon = model(self.stimulus)
         return self.compute_dv(recon)
 
-class LetterDetection(LetterTask):
-    def _make_stimulus(self, ltr_size, im_size):
-        return letter_image(self.ltr, ltr_size=ltr_size, im_size=im_size)[1]
+class LetterCrowding(LetterTask):
+    pass
