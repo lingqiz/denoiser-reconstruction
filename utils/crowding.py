@@ -103,11 +103,14 @@ class LetterDetection(LetterTask):
 
 # crowding stimulus
 class LetterCrowding(LetterTask):
-    def __init__(self, ltr, ltr_size, im_size):
+    def __init__(self, ltr, ltr_size, im_size, gap_size=None, flank=None):
         super().__init__(ltr, ltr_size, im_size)
 
         self.ltr_size = ltr_size
         self.im_size = im_size
+
+        if not ((gap_size is None) or (flank is None)):
+            self.set_stimulus(gap_size, flank)
 
     def set_stimulus(self, gap_size, flank):
         letters = (flank[0], self.ltr, flank[1])
