@@ -94,7 +94,7 @@ class LetterDetection(LetterTask):
     def __init__(self, ltr, ltr_size, im_size):
         super().__init__(ltr, ltr_size, im_size)
 
-        # generate stimulus (static)
+        # generate a (static) stimulus
         self.stimulus = self._init_stimulus(ltr_size, im_size)
         self.stim_image = self.stimulus.detach().permute(1, 2, 0).numpy()
 
@@ -111,7 +111,6 @@ class LetterCrowding(LetterTask):
 
     def set_stimulus(self, gap_size, flank):
         letters = (flank[0], self.ltr, flank[1])
+
         self.stim_image, self.stimulus = \
             letter_array(letters, self.ltr_size, gap_size, self.im_size)
-
-        return self.stim_image, self.stimulus
