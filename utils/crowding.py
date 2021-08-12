@@ -75,6 +75,10 @@ class LetterTask(ABC):
 
         return dv, dv[self.tid] - np.mean(dv[mask.astype(bool)])
 
+    def eval_model(self, model):
+        recon = model(self.stimulus)
+        return self.compute_dv(recon)
+
 class LetterDetection(LetterTask):
     def _make_stimulus(self, ltr_size, im_size):
         return letter_image(self.ltr, ltr_size=ltr_size, im_size=im_size)[1]
