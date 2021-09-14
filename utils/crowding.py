@@ -20,8 +20,8 @@ def letter_image(ltr, ltr_size, im_size):
     index = np.zeros(4)
     all_index = np.nonzero(image)
 
-    index[0], index[1] = np.min(all_index[0]), np.max(all_index[0] + 1)
-    index[2], index[3] = np.min(all_index[1]), np.max(all_index[1] + 1)
+    index[0], index[1] = np.min(all_index[0]) + 1, np.max(all_index[0]) 
+    index[2], index[3] = np.min(all_index[1]) + 1, np.max(all_index[1])
 
     # add background and make image / torch stimulus
     image = np.clip(np.array(image) / IMG_MAX + BACKGROUND, 0, 1)
