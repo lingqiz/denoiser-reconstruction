@@ -1,3 +1,4 @@
+from matplotlib.pyplot import fill
 import torch, numpy as np
 import PIL, PIL.ImageDraw, PIL.ImageFont
 from abc import ABC
@@ -29,15 +30,15 @@ def letter_image(ltr, ltr_size, im_size):
 
     return (image, stim, index.astype(np.int32))
 
-def letter_array(letters, ltr_size, gap_size, im_size):
+def letter_array(letters, ltr_size, gap_size, im_size, flank_col=(255, 255, 255)):
     image = PIL.Image.new('RGB', im_size, color=0)
     draw = PIL.ImageDraw.Draw(image)
     font = PIL.ImageFont.truetype('./assets/arial.ttf', ltr_size)
 
     loc = (im_size[0] - ltr_size) / 2
-    draw.text((loc - ltr_size / 2 - gap_size, loc), letters[0], font=font)
+    draw.text((loc - ltr_size / 2 - gap_size, loc), letters[0], font=font, fill=flank_col)
     draw.text((loc, loc), letters[1], font=font)
-    draw.text((loc + ltr_size / 2 + gap_size, loc), letters[2], font=font)
+    draw.text((loc + ltr_size / 2 + gap_size, loc), letters[2], font=font, fill=flank_col)
 
     # add background and make image / torch stimulus
     image = np.clip(np.array(image) / IMG_MAX + BACKGROUND, 0, 1)
@@ -103,11 +104,12 @@ class LetterDetection(LetterTask):
 
 # crowding stimulus
 class LetterCrowding(LetterTask):
-    def __init__(self, ltr, ltr_size, im_size, gap_size=None, flank=None):
+    def __init__(self, ltr, ltr_size, im_size, gap_size=None, flank=None, flank_col=(255, 255, 255)):
         super().__init__(ltr, ltr_size, im_size)
 
         self.ltr_size = ltr_size
         self.im_size = im_size
+        self.flank_col = flank_col
 
         if not ((gap_size is None) or (flank is None)):
             self.set_stimulus(gap_size, flank)
@@ -116,4 +118,4 @@ class LetterCrowding(LetterTask):
         letters = (flank[0], self.ltr, flank[1])
 
         self.stim_image, self.stimulus = \
-            letter_array(letters, self.ltr_size, gap_size, self.im_size)
+            letter_array(letters, self.ltr_size, gap_size, self.im_size, flank_col=self.flank_col)
