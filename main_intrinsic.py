@@ -51,6 +51,9 @@ def args():
     parser.add_argument('--data_path',
                         type=str,
                         default='intrinsic')
+    parser.add_argument('--data_range',
+                        type=int,
+                        default=10)
     parser.add_argument('--linear',
                         type=bool,
                         default=True)

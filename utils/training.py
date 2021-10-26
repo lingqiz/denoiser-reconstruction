@@ -63,7 +63,16 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             # print some diagnostic information
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
 
-            psnr = test_model(test_set, model, noise=128.0, device=rank)[0].mean(axis=1)
+            if args.data_path == 'intrinsic':
+                noise_level = 255
+                data_range = args.data_range
+            else:
+                noise_level = 128
+                data_range = None
+
+            psnr = test_model(test_set, model, noise=noise_level,
+                device=rank, data_range=data_range)[0].mean(axis=1)
+
             print('average loss %.6f' % (total_loss / float(count + 1)))
             print('test psnr in %.2f, out %.2f' % (psnr[0], psnr[1]))
 

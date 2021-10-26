@@ -40,7 +40,7 @@ def gamma_correct(image):
     return image_correct
 
 # test image denoising model
-def test_model(test_set, model, noise, device):
+def test_model(test_set, model, noise, device, data_range=None):
     model.eval()
 
     # make sure things are the right data type
@@ -64,8 +64,8 @@ def test_model(test_set, model, noise, device):
     psnr = np.zeros([2, test_torch.shape[0]])
     for idx, test, noisy, denoise in \
         zip(range(test_torch.shape[0]), test_set, noise_set, denoise_set):
-        psnr[0, idx] = peak_signal_noise_ratio(test, noisy)
-        psnr[1, idx] = peak_signal_noise_ratio(test, denoise)
+        psnr[0, idx] = peak_signal_noise_ratio(test, noisy, data_range=data_range)
+        psnr[1, idx] = peak_signal_noise_ratio(test, denoise, data_range=data_range)
 
     return (psnr, test_set, noise_set, denoise_set)
 
