@@ -216,8 +216,8 @@ class CGIntrinsic(DataSet):
                 albedo = cv2.resize(albedo, (self.WIDTH, self.HEIGHT))
 
                 # compute shading with log
-                log_mlt = np.log(np.clip(mlt * 255.0, 1, 255.0))
-                log_albedo = np.log(np.clip(albedo * 255.0, 1, 255.0))
+                log_mlt = np.log(np.clip(mlt * 255.0, 1.0, 255.0))
+                log_albedo = np.log(np.clip(albedo * 255.0, 1.0, 255.0))
                 log_shade = log_mlt - log_albedo
 
                 # combine into one image
@@ -232,7 +232,7 @@ class CGIntrinsic(DataSet):
                 return
 
             if counter % 5000 == 0:
-                print('Image Loaded %d / %d' % (counter, self.N_TOTAL))
+                print('image loaded %d / %d' % (counter, self.N_TOTAL))
                 break
 
         # split into training and testing set
