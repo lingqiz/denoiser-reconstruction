@@ -80,6 +80,8 @@ class DataSet:
             return MNIST()
         if args.data_path == 'artwork':
             return SingleImage(args, test_mode)
+        if args.data_path == 'intrinsic':
+            return CGIntrinsic(test_mode)
 
         # load other dataset from files
         return DataFromFile(args, test_mode)
@@ -183,3 +185,54 @@ class SingleImage(DataFromFile):
 
         # make copies of the training set
         self.train_patches = np.repeat(self.train_patches, repeats=100, axis=0)
+
+class CGIntrinsic(DataSet):
+    def __init__(self, test_mode=False):
+        self.N_TOTAL = 20160
+        self.N_TEST = 100
+        self.HEIGHT = 240
+        self.WIDTH = 360
+        self.CHANNEL = 6
+
+        train_folder = os.path.join('utils', 'dataset', 'cg_intrinsic')
+        all_folders = sorted(os.listdir(train_folder))
+
+        all_image = np.zeros((self.N_TOTAL, self.HEIGHT,
+                    self.WIDTH, self.CHANNEL), dtype=np.float32)
+
+        counter = 0
+        for folder_path in all_folders:
+            folder = os.path.join(train_folder, folder_path)
+            file_name = sorted(os.listdir(folder))
+            assert(len(file_name) % 3 == 0)
+
+            for idx in range(len(file_name) // 3):
+                # read in the image
+                mlt = plt.imread(os.path.join(folder, file_name[idx * 3]))
+                albedo = plt.imread(os.path.join(folder, file_name[idx * 3 + 1]))
+
+                # subsample
+                mlt = cv2.resize(mlt, (self.WIDTH, self.HEIGHT))
+                albedo = cv2.resize(albedo, (self.WIDTH, self.HEIGHT))
+
+                # compute shading with log
+                log_mlt = np.log(np.clip(mlt * 255.0, 1, 255.0))
+                log_albedo = np.log(np.clip(albedo * 255.0, 1, 255.0))
+                log_shade = log_mlt - log_albedo
+
+                # combine into one image
+                combined = np.concatenate([log_albedo, log_shade], axis=2)
+                all_image[counter] = combined.astype(np.float32)
+
+                # image counter
+                counter += 1
+
+            if test_mode and counter >= self.N_TEST:
+                self.test_patches = all_image[:self.N_TEST, :]
+                return
+
+        # split into training and testing set
+        np.random.shuffle(all_image)
+
+        self.test_patches = all_image[:self.N_TEST, :]
+        self.train_patches = all_image[self.N_TEST:, :]
