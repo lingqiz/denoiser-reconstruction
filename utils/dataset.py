@@ -226,14 +226,12 @@ class CGIntrinsic(DataSet):
 
                 # image counter
                 counter += 1
+                if counter % 5000 == 0:
+                    print('image loaded %d / %d' % (counter, self.N_TOTAL))
 
             if test_mode and counter >= self.N_TEST:
                 self.test_patches = all_image[:self.N_TEST, :]
                 return
-
-            if counter % 5000 == 0:
-                print('image loaded %d / %d' % (counter, self.N_TOTAL))
-                break
 
         # split into training and testing set
         np.random.shuffle(all_image)
