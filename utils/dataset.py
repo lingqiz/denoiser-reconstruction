@@ -40,7 +40,7 @@ def gamma_correct(image):
     return image_correct
 
 # test image denoising model
-def test_model(test_set, model, noise, device, data_range=None):
+def test_model(test_set, model, noise, device, data_range=None, clip_range=(0, 1)):
     model.eval()
 
     # make sure things are the right data type
@@ -56,9 +56,11 @@ def test_model(test_set, model, noise, device, data_range=None):
     with torch.no_grad():
         residual = model(test_noise.to(device))
 
-    noise_set = np.clip(test_noise.permute(0, 2, 3, 1).numpy(), 0, 1)
-    denoise_set = np.clip((test_noise -
-        residual.detach().cpu()).permute(0, 2, 3, 1).numpy(), 0, 1)
+    noise_set = np.clip(test_noise.permute(0, 2, 3, 1).numpy(),
+                        clip_range[0], clip_range[1])
+
+    denoise_set = np.clip((test_noise - residual.detach().cpu()).permute(0, 2, 3, 1).numpy(),
+                        clip_range[0], clip_range[1])
 
     # calculate the PSNR for each test images
     psnr = np.zeros([2, test_torch.shape[0]])
