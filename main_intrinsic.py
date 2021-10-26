@@ -41,7 +41,7 @@ def args():
                         default=0.50)
     parser.add_argument('--ddp',
                         type=bool,
-                        default=False,
+                        default=True,
                         help='Distributed Data Parallel')
     parser.add_argument('--save_path',
                         type=str,
