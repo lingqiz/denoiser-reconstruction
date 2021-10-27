@@ -19,7 +19,7 @@ def args():
                         help='script mode')
     parser.add_argument('--model_path',
                         type=str,
-                        default='./assets/conv3_ln.pt')
+                        default='./assets/conv3_intr.pt')
 
     # arguments for network training
     parser.add_argument('--batch_size',
@@ -142,8 +142,20 @@ def test(args):
 
     input_psnr = []
     output_psnr = []
-    for noise in range(110, 0, -10):
-        psnr = test_model(test_set, model, noise, device)[0].mean(axis=1)
+
+    if args.data_path == 'intrinsic':
+        noise_level = 512.0
+        data_range = args.data_range
+        clip_range = (-5.5, 5.5)
+    else:
+        noise_level = 128.0
+        data_range = None
+        clip_range = (0, 1)
+
+    for noise in range(noise_level, 0, -10):
+        psnr = test_model(test_set, model, noise=noise, device=device,
+            data_range=data_range, clip_range=clip_range)[0].mean(axis=1)
+        
         input_psnr.append(psnr[0])
         output_psnr.append(psnr[1])
 
