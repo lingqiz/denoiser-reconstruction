@@ -23,7 +23,7 @@ def args():
 
     # arguments for network training
     parser.add_argument('--batch_size',
-                        type=int, default=64,
+                        type=int, default=32,
                         help='input batch size for training')
     parser.add_argument('--n_epoch',
                         type=int,
