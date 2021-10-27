@@ -64,7 +64,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             print('epoch %d/%d' % (epoch + 1, args.n_epoch))
 
             if args.data_path == 'intrinsic':
-                noise_level = 256.0
+                noise_level = 512.0
                 data_range = args.data_range
                 clip_range = (-5.5, 5.5)
             else:
