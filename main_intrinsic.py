@@ -144,11 +144,11 @@ def test(args):
     output_psnr = []
 
     if args.data_path == 'intrinsic':
-        noise_level = 512.0
+        noise_level = 512
         data_range = args.data_range
         clip_range = (-5.5, 5.5)
     else:
-        noise_level = 128.0
+        noise_level = 128
         data_range = None
         clip_range = (0, 1)
 
