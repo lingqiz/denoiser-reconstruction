@@ -145,14 +145,16 @@ def test(args):
 
     if args.data_path == 'intrinsic':
         noise_level = 512
+        step_size = -40
         data_range = args.data_range
         clip_range = (-5.5, 5.5)
     else:
         noise_level = 128
+        step_size = -10
         data_range = None
         clip_range = (0, 1)
 
-    for noise in range(noise_level, 0, -10):
+    for noise in range(noise_level, 0, step_size):
         psnr = test_model(test_set, model, noise=noise, device=device,
             data_range=data_range, clip_range=clip_range)[0].mean(axis=1)
         
