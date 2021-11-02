@@ -1,6 +1,7 @@
 import os, cv2, torch, torchvision, scipy.io, numpy as np
 import matplotlib.pylab as plt
 from skimage.metrics import peak_signal_noise_ratio
+from tqdm import tqdm
 
 # sample image patches
 def sample_patch(image, scales, patch_size):
@@ -194,13 +195,20 @@ class CGIntrinsic(DataSet):
         self.N_TEST = 100
         self.HEIGHT = 240
         self.WIDTH = 360
-        self.CHANNEL = 6
+        self.CHANNEL = 4
+        self.CLIP_RANGE = (0.05, 255)
 
         train_folder = os.path.join('utils', 'dataset', 'cg_intrinsic')
         all_folders = sorted(os.listdir(train_folder))
 
+        if test_mode:
+            np.shuffle(all_folders)
+
         all_image = np.zeros((self.N_TOTAL, self.HEIGHT,
                     self.WIDTH, self.CHANNEL), dtype=np.float32)
+
+        total = self.N_TEST if test_mode else self.N_TOTAL
+        pbar = tqdm(total=total)
 
         counter = 0
         for folder_path in all_folders:
@@ -217,26 +225,33 @@ class CGIntrinsic(DataSet):
                 mlt = cv2.resize(mlt, (self.WIDTH, self.HEIGHT))
                 albedo = cv2.resize(albedo, (self.WIDTH, self.HEIGHT))
 
-                # compute shading with log
-                log_mlt = np.log(np.clip(mlt * 255.0, 1.0, 255.0))
-                log_albedo = np.log(np.clip(albedo * 255.0, 1.0, 255.0))
-                log_shade = log_mlt - log_albedo
+                # compute shading
+                shade = np.divide(mlt, albedo, out=np.zeros_like(mlt),
+                                    where=(albedo != 0)).mean(axis=2)
+
+                # convert to the log counterpart
+                log_albedo = np.log((albedo * 10.0).clip(*self.CLIP_RANGE))
+                log_shade  = np.log((shade * 10.0).clip(*self.CLIP_RANGE))
 
                 # combine into one image
-                combined = np.concatenate([log_albedo, log_shade], axis=2)
+                combined = np.concatenate([log_albedo,
+                            np.expand_dims(log_shade, axis=2)], axis=2)
+
                 all_image[counter] = combined.astype(np.float32)
 
                 # image counter
                 counter += 1
-                if counter % 5000 == 0:
-                    print('image loaded %d / %d' % (counter, self.N_TOTAL))
+                pbar.update()
 
             if test_mode and counter >= self.N_TEST:
+                pbar.close()
                 self.test_patches = all_image[:self.N_TEST, :]
+
                 return
 
         # split into training and testing set
         np.random.shuffle(all_image)
+        pbar.close()
 
         self.test_patches = all_image[:self.N_TEST, :]
         self.train_patches = all_image[self.N_TEST:, :]

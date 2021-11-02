@@ -19,7 +19,7 @@ def args():
                         help='script mode')
     parser.add_argument('--model_path',
                         type=str,
-                        default='./assets/conv3_intr.pt')
+                        default='./assets/conv5_intr.pt')
 
     # arguments for network training
     parser.add_argument('--batch_size',
@@ -30,7 +30,7 @@ def args():
                         default=100,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
-                        default=[0, 512])
+                        default=[32, 512])
     parser.add_argument('--lr',
                         type=float,
                         default=5e-4)
@@ -45,7 +45,7 @@ def args():
                         help='Distributed Data Parallel')
     parser.add_argument('--save_path',
                         type=str,
-                        default='./assets/conv3_intrinsic.pt')
+                        default='./assets/conv5_intr.pt')
 
     # see dataset.py for parameters for individual dataset
     parser.add_argument('--data_path',
@@ -54,6 +54,12 @@ def args():
     parser.add_argument('--data_range',
                         type=int,
                         default=10)
+    parser.add_argument('--range_lb',
+                        type=float,
+                        default=-5)
+    parser.add_argument('--range_ub',
+                        type=float,
+                        default=5)
     parser.add_argument('--linear',
                         type=bool,
                         default=True)
@@ -69,10 +75,10 @@ def args():
     # network architecture
     parser.add_argument('--padding',
                         type=int,
-                        default=1)
+                        default=2)
     parser.add_argument('--kernel_size',
                         type=int,
-                        default=3)
+                        default=5)
     parser.add_argument('--num_kernels',
                         type=int,
                         default=64)
@@ -81,7 +87,7 @@ def args():
                         default=20)
     parser.add_argument('--im_channels',
                         type=int,
-                        default=6)
+                        default=4)
 
     # parse arguments and check
     args, _ = parser.parse_known_args()
@@ -147,7 +153,7 @@ def test(args):
         noise_level = 512
         step_size = -40
         data_range = args.data_range
-        clip_range = (-5.5, 5.5)
+        clip_range = (args.range_lb, args.range_ub)
     else:
         noise_level = 128
         step_size = -10
@@ -157,7 +163,7 @@ def test(args):
     for noise in range(noise_level, 0, step_size):
         psnr = test_model(test_set, model, noise=noise, device=device,
             data_range=data_range, clip_range=clip_range)[0].mean(axis=1)
-        
+
         input_psnr.append(psnr[0])
         output_psnr.append(psnr[1])
 

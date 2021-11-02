@@ -66,7 +66,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             if args.data_path == 'intrinsic':
                 noise_level = 512.0
                 data_range = args.data_range
-                clip_range = (-5.5, 5.5)
+                clip_range = (args.range_lb, args.range_ub)
             else:
                 noise_level = 128.0
                 data_range = None
