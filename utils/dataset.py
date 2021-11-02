@@ -196,7 +196,7 @@ class CGIntrinsic(DataSet):
         self.HEIGHT = 240
         self.WIDTH = 360
         self.CHANNEL = 4
-        self.CLIP_RANGE = (0.05, 255)
+        self.CLIP_RANGE = (0.05, 150)
 
         train_folder = os.path.join('utils', 'dataset', 'cg_intrinsic')
         all_folders = sorted(os.listdir(train_folder))

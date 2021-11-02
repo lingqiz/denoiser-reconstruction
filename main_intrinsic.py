@@ -53,10 +53,10 @@ def args():
                         default='intrinsic')
     parser.add_argument('--data_range',
                         type=int,
-                        default=10)
+                        default=8)
     parser.add_argument('--range_lb',
                         type=float,
-                        default=-5)
+                        default=-3)
     parser.add_argument('--range_ub',
                         type=float,
                         default=5)
