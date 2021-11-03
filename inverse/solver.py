@@ -193,7 +193,7 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
 
         # protect against divergence
         div_thld  = 1e2
-        iter_thld = 1e4
+        iter_thld = 1e3
         if sigma > div_thld or t > iter_thld:
             warnings.warn('Divergence detected, resample with \
                 larger step size and tolerance.', RuntimeWarning)
