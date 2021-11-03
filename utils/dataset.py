@@ -202,7 +202,7 @@ class CGIntrinsic(DataSet):
         all_folders = sorted(os.listdir(train_folder))
 
         if test_mode:
-            np.shuffle(all_folders)
+            np.random.shuffle(all_folders)
 
         all_image = np.zeros((self.N_TOTAL, self.HEIGHT,
                     self.WIDTH, self.CHANNEL), dtype=np.float32)
