@@ -141,7 +141,8 @@ class ArrayMatrix(Measurement):
 
 # sample from prior with linear constraint (render matrix)
 def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
-                    t_max=float('inf'), stride=10, seed=None, with_grad=False):
+    t_max=float('inf'), stride=10, seed=None, msmt_flag=False, with_grad=False):
+
     if not (seed is None):
         torch.manual_seed(seed)
 
@@ -165,7 +166,7 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
     R_T = render.recon
 
     # init variables
-    if input.dim() == 1:
+    if msmt_flag or input.dim() == 1:
         proj = R_T(input)
     elif input.dim() == 3:
         proj = R_T(R(input))
@@ -198,9 +199,8 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
             warnings.warn('Divergence detected, resample with \
                 larger step size and tolerance.', RuntimeWarning)
 
-            return linear_inverse(model, render, input,
-                                 h_init, beta * 2, sig_end * 2,
-                                 t_max, stride, seed, with_grad)
+            return linear_inverse(model, render, input, h_init, beta * 2, sig_end * 2,
+                                        t_max, stride, seed, msmt_flag, with_grad)
 
         # inject noise
         gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
