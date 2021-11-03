@@ -243,11 +243,11 @@ class CGIntrinsic(DataSet):
                 counter += 1
                 pbar.update()
 
-            if test_mode and counter >= self.N_TEST:
-                pbar.close()
-                self.test_patches = all_image[:self.N_TEST, :]
-
-                return
+                # test dataset
+                if test_mode and counter >= self.N_TEST:
+                    pbar.close()
+                    self.test_patches = all_image[:self.N_TEST, :]
+                    return
 
         # split into training and testing set
         np.random.shuffle(all_image)
