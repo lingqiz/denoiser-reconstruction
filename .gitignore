@@ -2,6 +2,7 @@ __pycache__/
 /utils/dataset
 /recon
 /notebook
+/cone_recon
 /assets/*
 .*
 *.log
