@@ -10,7 +10,7 @@ def blur_subsample(image, blur_factor=1, sub_factor=1):
 
     return sub_sample
 
-def forward_matrix(image_size, blur_factor, sub_factor):
+def forward_matrix(image_size, blur_factor, sub_factor, pbar=None):
     """
     Compute the forward matrix representing the blur and subsample operations.
     Note that we assume Column-major ordering for image -> vector (MATLAB style)
@@ -19,7 +19,11 @@ def forward_matrix(image_size, blur_factor, sub_factor):
     result = blur_subsample(basis, blur_factor, sub_factor)
 
     render = np.zeros((result.size, np.prod(image_size)))
-    pbar = tqdm(total=np.prod(image_size))
+
+    close_pbar = False
+    if pbar is None:
+        close_pbar = True
+        pbar = tqdm(total=np.prod(image_size))
 
     # indexing consistent with Column-Major order (MATLAB style)
     count = 0
@@ -34,6 +38,7 @@ def forward_matrix(image_size, blur_factor, sub_factor):
 
                 count += 1
                 pbar.update(1)
+    if close_pbar:
+        pbar.close()
 
-    pbar.close()
     return render
