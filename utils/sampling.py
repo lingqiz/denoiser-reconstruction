@@ -10,7 +10,6 @@ def blur_subsample(image, blur_factor=1, sub_factor=1):
 
     return sub_sample
 
-
 def forward_matrix(image_size, blur_factor, sub_factor):
     """
     Compute the forward matrix representing the blur and subsample operations.

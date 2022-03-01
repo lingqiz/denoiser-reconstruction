@@ -88,3 +88,6 @@ def read_array(file_path):
                                    dtype=np.single)
 
     return (array, img_size, (nx, ny), (ecc_x, ecc_y))
+
+def compute_svd(msmt_mtx):
+    return np.linalg.svd(msmt_mtx.T, full_matrices=False)[0].T
