@@ -4,6 +4,8 @@ __pycache__/
 /notebook
 /cone_recon
 /assets/*
+bf_cnn.py
+vit_model.py
 .*
 *.log
 *.npy
