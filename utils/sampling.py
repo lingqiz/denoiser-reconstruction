@@ -20,7 +20,7 @@ def forward_matrix(image_size, blur_factor, sub_factor):
     result = blur_subsample(basis, blur_factor, sub_factor)
 
     render = np.zeros((result.size, np.prod(image_size)))
-    pbar = tqdm(np.prod(image_size))
+    pbar = tqdm(total=np.prod(image_size))
 
     # indexing consistent with Column-Major order (MATLAB style)
     count = 0
