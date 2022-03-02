@@ -34,10 +34,12 @@ def forward_matrix(image_size, blur_factor, sub_factor, pbar=None):
                 basis[idx, idy, idz] = 1.0
 
                 result = blur_subsample(basis, blur_factor, sub_factor)
-                render[:, count] = np.transpose(result, [2, 1, 0]).flatten()
+                render[:, count] = result.flatten()
 
                 count += 1
                 pbar.update(1)
+ 
+    # close pbar if opened within function               
     if close_pbar:
         pbar.close()
 
