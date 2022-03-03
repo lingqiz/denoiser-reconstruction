@@ -26,10 +26,12 @@ def forward_matrix(image_size, blur_factor, sub_factor, pbar=None):
         pbar = tqdm(total=np.prod(image_size))
 
     # indexing consistent with Column-Major order (MATLAB style)
+    # loop over x -> y -> z
+    # Python use Row-Major order (C style), z -> y -> x
     count = 0
     for idz in range(image_size[2]):
-        for idx in range(image_size[0]):
-            for idy in range(image_size[1]):
+        for idy in range(image_size[1]):
+            for idx in range(image_size[0]):
                 basis = np.zeros(image_size)
                 basis[idx, idy, idz] = 1.0
 
@@ -38,8 +40,8 @@ def forward_matrix(image_size, blur_factor, sub_factor, pbar=None):
 
                 count += 1
                 pbar.update(1)
- 
-    # close pbar if opened within function               
+
+    # close pbar if opened within function
     if close_pbar:
         pbar.close()
 

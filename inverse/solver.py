@@ -66,8 +66,10 @@ class RenderMatrix(Measurement):
 
         A transpose is required due to different
         in convention between MATLAB and torch
+        (Row-Major vs Column-Major)
         '''
 
+        # transpose such that flatten() result is column-major (MATLAB/Fortran)
         return torch.matmul(self.R, x.transpose(1, 2).flatten())
 
     def recon(self, msmt):
@@ -75,6 +77,7 @@ class RenderMatrix(Measurement):
         From measurement to image space
         '''
 
+        # transpose such that flatten() result is column-major (MATLAB/Fortran)
         return torch.matmul(self.R.T, msmt).reshape(self.im_size).transpose(1, 2)
 
 class ArrayMatrix(Measurement):
