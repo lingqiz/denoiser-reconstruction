@@ -1,3 +1,4 @@
+import cupy as cp
 import h5py, torch, numpy as np, matplotlib.pyplot as plt
 from utils.dataset import test_model, gamma_correct
 from inverse.sampler import sample_prior
@@ -89,6 +90,10 @@ def read_array(file_path):
 
     return (array, img_size, (nx, ny), (ecc_x, ecc_y))
 
+# compute a SVD for the measurement matrix
 def compute_svd(msmt_mtx):
-    u, s, _ = np.linalg.svd(msmt_mtx.T, full_matrices=False)
-    return (u.T, s ** 2)
+    # create a CP matrix
+    mtx = cp.array(msmt_mtx.astype(np.float32))
+    # SVD on GPU
+    u, s, _ = cp.linalg.svd(mtx.T, full_matrices=False)
+    return (cp.asnumpy(u.T), cp.asnumpy(s))
