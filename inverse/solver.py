@@ -231,4 +231,3 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
         return final.squeeze(0), t, all_ys
 
     return all_ys
-
