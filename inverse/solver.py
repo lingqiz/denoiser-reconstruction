@@ -231,3 +231,83 @@ def linear_inverse(model, render, input, h_init=0.01, beta=0.01, sig_end=0.01,
         return final.squeeze(0), t, all_ys
 
     return all_ys
+
+# linear inverse with linear noisy measurements
+def noise_inverse(model, render, input, weight,
+    h_init=0.01, beta=0.01, sig_end=0.01, stride=10):
+
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    model = model.eval().to(device)
+
+    # helper function for pytorch image to numpy image
+    numpy_image = lambda y: y.detach().cpu() \
+        .squeeze(0).permute(1, 2, 0).numpy()
+
+    # the network calculates the noise residual
+    def log_grad(y):
+        with torch.no_grad():
+            return - model(y)
+
+    # measurement matrix calculation
+    R = render.measure
+    R_T = render.recon
+
+    # init variables
+    if input.dim() == 1:
+        proj = R_T(weight * input)
+    elif input.dim() == 3:
+        proj = R_T(weight * R(input))
+
+    e = torch.ones_like(proj)
+    n = torch.numel(e)
+
+    mu = 0.5 * (e - R_T(R(e))) + proj
+    y = torch.normal(mean=mu, std=1.0).unsqueeze(0).to(device)
+    sigma = torch.norm(log_grad(y)) / np.sqrt(n)
+
+    t = 1
+    all_ys = []
+    while sigma > sig_end:
+        # update step size
+        h = (h_init * t) / (1 + h_init * (t - 1))
+
+        # projected log prior gradient
+        d = log_grad(y).squeeze(0)
+
+        # projected log prior gradient
+        # weighted by prior / measurement precision
+        d_prior = d - R_T(weight * R(d))
+        d_msmt = proj - R_T(weight * R(y.squeeze(0)))
+
+        d = (d_prior + d_msmt).unsqueeze(0)
+
+        # noise magnitude
+        sigma = torch.norm(d) / np.sqrt(n)
+
+        # protect against divergence
+        div_thld  = 1e2
+        iter_thld = 1e3
+        if sigma > div_thld or t > iter_thld:
+            warnings.warn('Divergence detected, resample with \
+                larger step size and tolerance.', RuntimeWarning)
+
+            return noise_inverse(model, render, input, weight,
+                        h_init, beta * 2, sig_end * 2, stride)
+
+        # inject noise
+        gamma = np.sqrt((1 - beta * h) ** 2 - (1 - h) ** 2) * sigma
+        noise = torch.randn(size=y.size(), device=device)
+
+        # update image
+        y = y + h * d + gamma * noise
+
+        if stride > 0 and (t - 1) % stride == 0:
+            print('iter %d, sigma %.2f' % (t, sigma.item()))
+            all_ys.append(numpy_image(y))
+
+        t += 1
+
+    final = y + log_grad(y)
+    all_ys.append(numpy_image(final))
+
+    return all_ys
