@@ -261,7 +261,7 @@ def noise_inverse(model, render, input, weight,
     e = torch.ones_like(proj)
     n = torch.numel(e)
 
-    mu = 0.5 * (e - R_T(R(e))) + proj
+    mu = 0.5 * (e - R_T(weight * R(e))) + proj
     y = torch.normal(mean=mu, std=1.0).unsqueeze(0).to(device)
     sigma = torch.norm(log_grad(y)) / np.sqrt(n)
 
@@ -305,6 +305,7 @@ def noise_inverse(model, render, input, weight,
             print('iter %d, sigma %.2f' % (t, sigma.item()))
             all_ys.append(numpy_image(y))
 
+        # iteration counter
         t += 1
 
     final = y + log_grad(y)
