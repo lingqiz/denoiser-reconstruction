@@ -5,6 +5,7 @@ Bayesian Image Reconstruction Methods
 """
 import torch, numpy as np
 from torch.nn.functional import conv2d
+from torch.optim.lr_scheduler import StepLR
 from abc import ABC, abstractmethod
 
 class BayesEstimator(ABC):
@@ -83,7 +84,8 @@ class BayesEstimator(ABC):
         '''
         return self.neg_llhd(msmt, image) + self.lbda * self.conv_prior(image)
 
-    def recon(self, msmt, im_size, n_iter=1001, lr=5e-2):
+    def recon(self, msmt, im_size, n_iter=2001,
+              lr=1e-1, step=400, print_loss=True):
         '''
         Reconstruct image(s) from measurements
             - msmt: (batch_size, n_measurements)
@@ -94,6 +96,7 @@ class BayesEstimator(ABC):
 
         # gradient descent with Adam
         optimizer = torch.optim.Adam([init], lr=lr)
+        scheduler = StepLR(optimizer, step_size=step, gamma=0.4)
         loss = []
         for iter in range(n_iter):
             optimizer.zero_grad()
@@ -102,12 +105,13 @@ class BayesEstimator(ABC):
 
             obj.backward()
             optimizer.step()
+            scheduler.step()
 
             # clip the image to be between 0 and 1
             with torch.no_grad():
                 init.clamp_(0, 1)
 
-            if iter % 200 == 0:
+            if iter % 200 == 0 and print_loss:
                 print('Iteration: {}, Objective: {}'.format(iter, obj.sum()))
 
         return init.detach(), np.array(loss)
