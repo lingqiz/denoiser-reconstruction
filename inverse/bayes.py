@@ -83,7 +83,7 @@ class BayesEstimator(ABC):
         '''
         return self.neg_llhd(msmt, image) + self.lbda * self.conv_prior(image)
 
-    def recon(self, msmt, im_size, n_iter=2001, lr=5e-2):
+    def recon(self, msmt, im_size, n_iter=1001, lr=5e-2):
         '''
         Reconstruct image(s) from measurements
             - msmt: (batch_size, n_measurements)
