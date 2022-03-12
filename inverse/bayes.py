@@ -107,7 +107,7 @@ class BayesEstimator(ABC):
             with torch.no_grad():
                 init.clamp_(0, 1)
 
-            if iter % 100 == 0:
+            if iter % 200 == 0:
                 print('Iteration: {}, Objective: {}'.format(iter, obj.sum()))
 
         return init.detach(), np.array(loss)
