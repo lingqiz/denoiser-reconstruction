@@ -3,7 +3,6 @@ Bayesian Image Reconstruction Methods
     - Gaussian / Sparse MAP
     - Gaussian likelihood
 """
-from pickletools import optimize
 import torch, numpy as np
 from torch.nn.functional import conv2d
 from abc import ABC, abstractmethod
@@ -84,27 +83,34 @@ class BayesEstimator(ABC):
         '''
         return self.neg_llhd(msmt, image) + self.lbda * self.conv_prior(image)
 
-    def recon(self, msmt, im_size, n_iter=100, lr=1e-2):
+    def recon(self, msmt, im_size, n_iter=2001, lr=5e-2):
         '''
         Reconstruct image(s) from measurements
             - msmt: (batch_size, n_measurements)
             - im_size: (batch_size, 3, n, n)
         '''
-        init = torch.rand(im_size, type=torch.float32,
+        init = torch.rand(im_size, dtype=torch.float32,
                 device=self.device, requires_grad=True)
 
+        # gradient descent with Adam
         optimizer = torch.optim.Adam([init], lr=lr)
+        loss = []
         for iter in range(n_iter):
             optimizer.zero_grad()
             obj = self.objective(msmt, init).sum()
+            loss.append(obj.item())
 
             obj.backward()
             optimizer.step()
 
-            if iter % 5 == 0:
+            # clip the image to be between 0 and 1
+            with torch.no_grad():
+                init.clamp_(0, 1)
+
+            if iter % 100 == 0:
                 print('Iteration: {}, Objective: {}'.format(iter, obj.sum()))
 
-        return init.detach()
+        return init.detach(), np.array(loss)
 
 class GaussianEstimator(BayesEstimator):
     def __init__(self, device, basis, mu, stride=4):
