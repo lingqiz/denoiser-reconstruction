@@ -17,7 +17,7 @@ class BayesEstimator(ABC):
         - basis: (out_channels, image_size)
         - mu: (image_size, 1)
     """
-    def __init__(self, device, render, basis, mu, lbda=1e-4, stride=4):
+    def __init__(self, device, render, basis, mu, lbda=1e-7, stride=4):
         self.render = torch.tensor(render, device=device)
         self.device = device
         self.lbda = lbda
@@ -62,7 +62,7 @@ class BayesEstimator(ABC):
     @abstractmethod
     def conv_prior(self, image):
         '''
-        Loss value associated with the prior (Gaussian and Sparse)
+        Compute loss value associated with the prior
             - image: (batch_size, 3, n, n)
         '''
         pass
@@ -122,6 +122,10 @@ class GaussianEstimator(BayesEstimator):
 
     # Gauassian prior
     def conv_prior(self, image):
+        '''
+        Loss value associated with a Gaussian prior
+            - image: (batch_size, 3, n, n)
+        '''
         coeff = self._conv_basis(image)
         coeff = torch.pow(coeff, 2).reshape(coeff.shape[0], -1)
 
@@ -133,6 +137,10 @@ class SparseEstimator(BayesEstimator):
 
     # Sparse prior
     def conv_prior(self, image):
+        '''
+        Loss value associated with a Sparse prior
+            - image: (batch_size, 3, n, n)
+        '''
         coeff = self._conv_basis(image)
         coeff = coeff.reshape(coeff.shape[0], -1)
 
