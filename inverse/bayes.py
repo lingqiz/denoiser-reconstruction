@@ -12,9 +12,9 @@ class BayesEstimator(ABC):
     Base class for Bayesian reconstruction methods
 
     variables render, basis, and mu are numpy types
-        - render: (n_measurements, image_dimension)
-        - basis: (out_channels, image_dimension)
-        - mu: (image_dimension, 1)
+        - render: (n_measurements, image_size)
+        - basis: (out_channels, image_size)
+        - mu: (image_size, 1)
     """
     def __init__(self, device, render, basis, mu, stride=4):
         self.render = torch.tensor(render, device=device)
@@ -38,14 +38,29 @@ class BayesEstimator(ABC):
                                    dtype=torch.float32).to(device)
 
     def _conv_basis(this, image):
+        '''
+        Compute the prior value with convolutional
+        projection onto a set of basis kernels
+            - image: (batch_size, 3, n, n)
+        '''
         return conv2d(image, this.kernel, this.bias, this.stride, 'valid')
 
     @abstractmethod
     def conv_prior(this, image):
+        '''
+        Loss value associated with the prior (Gaussian and Sparse)
+            - image: (batch_size, 3, n, n)
+        '''
         pass
 
     def llhd(this, msmt, image):
-        pass
+        '''
+        Compute the likelihood of the estimate (image)
+            - msmt: (batch_size, n_measurements)
+            - image: (batch_size, image_size)
+        '''
+        diff = (this.render @ image.T).T - msmt
+        return 0.5 * torch.pow(diff, 2).sum(1)
 
 class GaussianEstimator(BayesEstimator):
     def __init__(self, device, basis, mu, stride=4):
