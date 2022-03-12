@@ -117,8 +117,8 @@ class BayesEstimator(ABC):
         return init.detach(), np.array(loss)
 
 class GaussianEstimator(BayesEstimator):
-    def __init__(self, device, basis, mu, stride=4):
-        super().__init__(device, basis, mu, stride)
+    def __init__(self, device, render, basis, mu, lbda=1e-7, stride=4):
+        super().__init__(device, render, basis, mu, lbda, stride)
 
     # Gauassian prior
     def conv_prior(self, image):
@@ -132,8 +132,8 @@ class GaussianEstimator(BayesEstimator):
         return 0.5 * coeff.sum(1)
 
 class SparseEstimator(BayesEstimator):
-    def __init__(self, device, basis, mu, stride=4):
-        super().__init__(device, basis, mu, stride)
+    def __init__(self, device, render, basis, mu, lbda=1e-7, stride=4):
+        super().__init__(device, render, basis, mu, lbda, stride)
 
     # Sparse prior
     def conv_prior(self, image):
