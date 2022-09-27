@@ -1,4 +1,4 @@
-import cv2, numpy as np
+import cv2, math, numpy as np
 from tqdm.notebook import tqdm
 
 def gauss_blur(image, factor=1):
@@ -23,16 +23,20 @@ def sample_mtx(im_size, mode, paras):
 
     if mode == 'regular':
         # assign RGB plane separately
-        # regular bayer-like pattern
         factor = paras['factor']
+        gap = math.ceil((float(factor) / 4.0))
+        gap = max(gap, 1)
 
+        # assign samples
         index[0::factor, 0::factor, R] = 1
-        index[1::factor, 1::factor, B] = 1
-
-        index[0::factor, 1::factor, G] = 1
-        index[1::factor, 0::factor, G] = 1
+        index[gap::factor, gap::factor, G] = 1
+        index[(gap * 2)::factor, (gap * 2)::factor, B] = 1
 
         return index.astype(np.bool)
+
+    if mode == 'bayer':
+        # bayer-like pattern
+        pass
 
     if mode == 'random':
         # randomly assign location of R, G and B sample
