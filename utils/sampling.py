@@ -50,6 +50,23 @@ def sample_mtx(im_size, mode, paras):
 
         return index.astype(np.bool)
 
+    if mode == 'exclusive':
+        # cone mosaic where the total RGB sample is fixed
+        n_pix = im_size[0] * im_size[1]
+        assign = (paras['assign'] * paras['ratio'] * n_pix).astype(np.int)
+
+        # add the correct numner of samples
+        array = [0] * assign[0] + [1] * assign[1] + [2] * assign[2]
+        array += [3] * (n_pix - len(array))
+        np.random.shuffle(array)
+
+        # assign to the subsample image
+        array = np.reshape(array, im_size[:2])
+        for idx in range(3):
+            index[:, :, idx] = (array == idx)
+
+        return index.astype(np.bool)
+
 def forward_mtx(im_size, blur, smp_mtx, pbar=None):
     """
     Compute the forward matrix representing the blur and subsample operations.
