@@ -23,8 +23,14 @@ def sample_mtx(im_size, mode, paras):
         factor = paras['factor']
 
         # assign RGB plane separately
-        for pid in range(3):
-            index[pid::factor, pid::factor, pid] = 1
+        # regular bayer-like pattern
+
+        R = 0; G = 1; B = 2
+        index[0::factor, 0::factor, R] = 1
+        index[1::factor, 1::factor, B] = 1
+
+        index[0::factor, 1::factor, G] = 1
+        index[1::factor, 0::factor, G] = 1
 
         return index.astype(np.bool)
 
