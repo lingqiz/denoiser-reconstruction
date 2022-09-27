@@ -11,26 +11,42 @@ def sample_mtx(im_size, mode, paras):
     """
     Create a matrix that represents the subsample operation applied to an image
     """
+    R = 0; G = 1; B = 2
     index = np.zeros(im_size)
 
     if mode == 'full':
+        # full RGB space at each spatial location
         factor = paras['factor']
         index[::factor, ::factor, :] = 1
 
         return index.astype(np.bool)
 
     if mode == 'regular':
-        factor = paras['factor']
-
         # assign RGB plane separately
         # regular bayer-like pattern
+        factor = paras['factor']
 
-        R = 0; G = 1; B = 2
         index[0::factor, 0::factor, R] = 1
         index[1::factor, 1::factor, B] = 1
 
         index[0::factor, 1::factor, G] = 1
         index[1::factor, 0::factor, G] = 1
+
+        return index.astype(np.bool)
+
+    if mode == 'random':
+        # randomly assign location of R, G and B sample
+        ratio = paras['ratio']
+        n_pix = im_size[0] * im_size[1]
+        n_smp = int(n_pix * ratio)
+
+        # loop through RGB plane
+        for idx in range(3):
+            sample = np.zeros(n_pix)
+            sample[:n_smp] = 1
+            np.random.shuffle(sample)
+
+            index[:, :, idx] = np.reshape(sample, im_size[:2])
 
         return index.astype(np.bool)
 
