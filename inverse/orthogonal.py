@@ -14,7 +14,7 @@ class OrthMatrix(RenderMatrix):
     
         super().__init__(self.para.weight, im_size, device)
         
-    def _update(self):
-        # update the measurement matrix based on the parameterization
+    def forward(self):
+        # generate the measurement matrix based on the parameterization
         self.R = self.para.weight
 
