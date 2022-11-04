@@ -134,6 +134,8 @@ class LinearInverse(nn.Module):
             # injected noise
             gamma = np.sqrt((1 - self.beta * h) ** 2 - (1 - h) ** 2) * sigma
             noise = torch.randn_like(y)
+            # expand gamma for shape matching
+            gamma = gamma[:, None, None, None].repeat([1, *self.im_size])
 
             # update image
             y = y + h * d + gamma * noise
