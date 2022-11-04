@@ -100,6 +100,9 @@ class LinearInverse(nn.Module):
     def forward(self, x):
         """
         x: images of size [N, C, W, H]
+        
+        Perform denoiser reconstruction on
+        images based on linear measurements
         """
         # update the measurement matrix
         # based on the parameterization
@@ -145,8 +148,11 @@ class LinearInverse(nn.Module):
             # (typically) use in conjection with grad=True
             if t > self.t_max:
                 break
-
-        # run a final denoise step and return the results
+        
+        # send t variable to the correct device     
+        if y.is_cuda:
+            t = torch.tensor(t).to(y.get_device())
+            
+        # run a final denoise step and return the results    
         final = y + self.log_grad(y)
-        return final, torch.tensor(t)
-
+        return final, t
