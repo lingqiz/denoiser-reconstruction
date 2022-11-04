@@ -148,5 +148,5 @@ class LinearInverse(nn.Module):
 
         # run a final denoise step and return the results
         final = y + self.log_grad(y)
-        return final, t
+        return final, torch.tensor(t)
 
