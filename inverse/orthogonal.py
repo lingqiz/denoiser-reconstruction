@@ -1,4 +1,5 @@
 from inverse.solver import RenderMatrix
+from torch.linalg import vector_norm as vnorm
 import torch.nn.utils.parametrizations as para
 import torch, numpy as np
 import torch.nn as nn
@@ -53,6 +54,12 @@ class LinearInverse(nn.Module):
         self.linear = para.orthogonal(linear, orthogonal_map='householder')
         self.mtx = self.linear.weight
 
+        # default parameter for the reconstruction
+        self.h_init = 0.10
+        self.beta = 0.10
+        self.sig_end = 0.01
+        self.t_max = 100
+
     def refresh(self):
         self.mtx = self.linear.weight
 
@@ -91,4 +98,52 @@ class LinearInverse(nn.Module):
         return torch.matmul(m, self.mtx).reshape(new_shape).transpose(2, 3)
 
     def forward(self, x):
-        pass
+        """
+        x: images of size [N, C, W, H]
+        """
+        # update the measurement matrix
+        # based on the parameterization
+        self.refresh()
+
+        # measurement matrix calculation
+        M = self.measure
+        M_T = self.recon
+
+        # init variables
+        proj = M_T(M(x))
+        e = torch.ones_like(proj)
+        n = torch.numel(e[0])
+        mu = 0.5 * (e - M_T(M(e))) + proj
+        y = torch.randn_like(mu) + mu
+        sigma = vnorm(self.log_grad(y),
+                dim=(1, 2, 3)) / np.sqrt(n)
+
+        # start the iterative procedure
+        t = 1
+        while torch.min(sigma) > self.sig_end:
+            # update step size
+            h = (self.h_init * t) / (1 + self.h_init * (t - 1))
+
+            # projected log prior gradient
+            d = self.log_grad(y)
+            d = (d - M_T(M(d)) + proj - M_T(M(y)))
+
+            # noise magnitude
+            sigma = vnorm(d, dim=(1, 2, 3)) / np.sqrt(n)
+
+            # injected noise
+            gamma = np.sqrt((1 - self.beta * h) ** 2 - (1 - h) ** 2) * sigma
+            noise = torch.randn_like(y)
+
+            # update image
+            y = y + h * d + gamma * noise
+            t += 1
+
+            # safe guard for iteration limit (GPU memory limit)
+            # (typically) use in conjection with grad=True
+            if t > self.t_max:
+                break
+
+        final = y + self.log_grad(y)
+        return final, t
+
