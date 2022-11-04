@@ -33,24 +33,41 @@ class LinearInverse(nn.Module):
     """
 
     def __init__(self, n_sample, im_size, denoiser):
+        super().__init__()
+
         # save variables
         self.model = denoiser
+        self.im_size = im_size
         self.n_pixel = np.prod(im_size)
         self.n_sample = n_sample
+
+        # no grad flag for the denoiser model
+        for param in self.model.parameters():
+            param.requires_grad = False
 
         # initialize an orthogonal linear measurement matrix
         linear = torch.nn.Linear(self.n_pixel, self.n_sample)
         torch.nn.init.uniform_(linear.weight, a=0.0, b=1.0)
 
+        # save the orthogonal linear layer
         self.linear = para.orthogonal(linear, orthogonal_map='householder')
         self.mtx = self.linear.weight
 
-    def assign_mtx(self, mtx):
+    def refresh(self):
+        self.mtx = self.linear.weight
+
+    def assign(self, mtx):
         """
         Assign a measurement matrix. If the matrix is not orthogonal,
         its orthogonal component will be obtained using QR decomposition.
         """
         self.linear.weight = mtx
+        self.refresh()
+
+    def to(self, device):
+        return_val = super().to(device)
+        self.refresh()
+        return return_val
 
     def log_grad(self, x):
         return - self.model(x)
@@ -72,3 +89,6 @@ class LinearInverse(nn.Module):
         """
         new_shape = [-1, *self.im_size]
         return torch.matmul(m, self.mtx).reshape(new_shape).transpose(2, 3)
+
+    def forward(self, x):
+        pass
