@@ -146,6 +146,7 @@ class LinearInverse(nn.Module):
             if t > self.t_max:
                 break
 
+        # run a final denoise step and return the results
         final = y + self.log_grad(y)
         return final, t
 
