@@ -58,7 +58,8 @@ class LinearInverse(nn.Module):
         self.h_init = 0.10
         self.beta = 0.10
         self.sig_end = 0.01
-        self.t_max = 100
+        self.max_t = 100
+        self.last_t = None
 
     def refresh(self):
         self.mtx = self.linear.weight
@@ -146,13 +147,9 @@ class LinearInverse(nn.Module):
 
             # safe guard for iteration limit (GPU memory limit)
             # (typically) use in conjection with grad=True
-            if t > self.t_max:
+            if t > self.max_t:
                 break
+        self.last_t = t
         
-        # send t variable to the correct device     
-        if y.is_cuda:
-            t = torch.tensor(t).to(y.get_device())
-            
-        # run a final denoise step and return the results    
-        final = y + self.log_grad(y)
-        return final, t
+        # run a final denoise step and return the results
+        return y + self.log_grad(y)
