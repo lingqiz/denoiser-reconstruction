@@ -13,8 +13,7 @@ class OrthMatrix(RenderMatrix):
         n_pixel = np.prod(im_size)
 
         # init orthgonal matrix with householder product parameterization
-        linear = torch.nn.Linear(n_pixel, n_sample).to(device)
-        torch.nn.init.uniform_(linear.weight, a=0.0, b=1.0)
+        linear = torch.nn.Linear(n_pixel, n_sample).to(device)        
         self.para = para.orthogonal(linear, orthogonal_map='householder')
 
         super().__init__(self.para.weight, im_size, device)
@@ -48,9 +47,6 @@ class LinearInverse(nn.Module):
 
         # initialize an orthogonal linear measurement matrix
         linear = torch.nn.Linear(self.n_pixel, self.n_sample)
-        torch.nn.init.uniform_(linear.weight, a=0.0, b=1.0)
-
-        # save the orthogonal linear layer
         self.linear = para.orthogonal(linear, orthogonal_map='householder')
         self.mtx = self.linear.weight
 
