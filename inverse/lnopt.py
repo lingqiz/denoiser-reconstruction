@@ -1,7 +1,8 @@
 import torch
 import numpy as np
 import torch.nn as nn
-import time, datetime
+import logging
+import sys
 from tqdm import tqdm
 from inverse.orthogonal import LinearInverse
 from torch.utils.data import DataLoader
@@ -72,7 +73,6 @@ def ln_optim(solver, loss, train, test,
     # Run n_epoch of training
     for epoch in range(n_epoch):
         pbar.reset()
-        start_time = time.time()
         total_loss = 0.0
 
         # SGD Optimization
@@ -105,16 +105,25 @@ def ln_optim(solver, loss, train, test,
         mse_val, ssim_val, psnr_val = denoiser_avg(test, solver)[:-1]
 
         # log training information
-        print('Epoch %d/%d' % (epoch + 1, n_epoch))
-        print('Time elapsed: %s' % str(datetime.timedelta(
-                        seconds=time.time() - start_time))[:-4])
-        print('Training loss value %.3f' % (avg_loss))
-        print('Test MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
-                        (mse_val, ssim_val, psnr_val))
+        logging.info('Epoch %d/%d' % (epoch + 1, n_epoch))
+        logging.info('Training loss value %.3f' % (avg_loss))
+        logging.info('Test MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
+                                    (mse_val, ssim_val, psnr_val))
     return solver
 
 def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
                 batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95):
+
+    # print relevant information
+    run_name = './design/results/%d_%s_im48' % (n_sample, loss)
+
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s %(message)s",
+        handlers=[
+            logging.FileHandler(run_name + '.log'),
+            logging.StreamHandler(sys.stdout)])
+
     # image size
     im_size = test_torch.size()[1:]
 
@@ -134,11 +143,23 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
     # test with PCA for baseline performance
     pca_mtx, mse_val, ssim_val, psnr_val, pca_recon = \
             pca_projection(train_set, test_torch, n_sample, im_size)
+    logging.info('PCA MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
+                                (mse_val, ssim_val, psnr_val))
 
     # denoiser reconstruction with PCA matrix
     solver_pca = LinearInverse(n_sample, im_size, denoiser).to(DEVICE).assign(pca_mtx)
     mse_val, ssim_val, psnr_val, denoiser_recon = denoiser_avg(test_torch, solver_pca)
+    logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
+                                        (mse_val, ssim_val, psnr_val))
 
     # run optimization
     solver_optim = ln_optim(solver_gpu, loss, train_set, test_torch,
             batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
+
+    mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_optim)
+    optim_mtx = solver_optim.linear.weight.detach().cpu().numpy()
+
+    # save results
+    save_vars = [pca_recon, denoiser_recon, denoiser_optim, pca_mtx, optim_mtx]
+    with open(run_name + '.npy', 'wb') as fl:
+        [np.save(fl, var) for var in save_vars]
