@@ -120,6 +120,7 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
     logging.basicConfig(
         level=logging.INFO,
         format="%(asctime)s %(message)s",
+        datefmt='%m/%d/%Y %I:%M:%S %p',
         handlers=[
             logging.FileHandler(run_name + '.log'),
             logging.StreamHandler(sys.stdout)])
