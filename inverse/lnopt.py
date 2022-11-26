@@ -128,7 +128,7 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
     # image and dataset size
     im_size = test_torch.size()[1:]
     logging.info('# Training Data: %d' % train_set.shape[0])
-    logging.info('# Test Data: %d' % test_torch.shape[0])
+    logging.info('# Test Data: %d \n' % test_torch.shape[0])
 
     # wrap the model in DataParallel
     solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
