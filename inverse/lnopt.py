@@ -125,8 +125,10 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
             logging.FileHandler(run_name + '.log'),
             logging.StreamHandler(sys.stdout)])
 
-    # image size
+    # image and dataset size
     im_size = test_torch.size()[1:]
+    logging.info('# Training Data: %d' % train_set.shape[0])
+    logging.info('# Test Data: %d' % test_torch.shape[0])
 
     # wrap the model in DataParallel
     solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
@@ -158,7 +160,7 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
             batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
 
     mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_optim)
-    optim_mtx = solver_optim.linear.weight.detach().cpu().numpy()
+    optim_mtx = solver.linear.weight.detach().cpu().numpy()
 
     # save results
     save_vars = [pca_recon, denoiser_recon, denoiser_optim, pca_mtx, optim_mtx]
