@@ -12,7 +12,7 @@ from sklearn.decomposition import PCA
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-MSE = nn.MSELoss().to(DEVICE)
+MSE = nn.MSELoss(reduction='sum').to(DEVICE)
 SSIM = SSIM(data_range=1.0).to(DEVICE)
 
 def pca_projection(train_set, test_torch, n_sample, im_size):
@@ -27,7 +27,7 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     recon_torch = recon_vec.reshape([-1, *im_size]).transpose(2, 3)
 
     # compute metric
-    mse_val = MSE(test_torch, recon_torch)
+    mse_val = MSE(test_torch, recon_torch) / test_torch.shape[0]
     ssim_val = SSIM(recon_torch, test_torch)
     psnr_val = psnr(image_vec.detach().cpu().numpy(),
                     recon_vec.detach().cpu().numpy())
@@ -45,7 +45,7 @@ def denoiser_avg(test_torch, solver, n_avg=5):
         recon = image_sum / n_avg
 
         # compute metric
-        mse_val = MSE(test_torch, recon)
+        mse_val = MSE(test_torch, recon) / test_torch.shape[0]
         ssim_val = SSIM(recon, test_torch)
 
         test_numpy = test_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
