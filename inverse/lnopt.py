@@ -166,3 +166,5 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
     save_vars = [pca_recon, denoiser_recon, denoiser_optim, pca_mtx, optim_mtx]
     with open(run_name + '.npy', 'wb') as fl:
         [np.save(fl, var) for var in save_vars]
+
+    return save_vars
