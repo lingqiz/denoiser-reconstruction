@@ -158,11 +158,11 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
     # run optimization
     solver_optim = ln_optim(solver_gpu, loss, train_set, test_torch,
             batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
-
-    mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_optim)
-    optim_mtx = solver.linear.weight.detach().cpu().numpy()
+    mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_optim)    
 
     # save results
+    pca_mtx = pca_mtx.detach().cpu().numpy()
+    optim_mtx = solver.linear.weight.detach().cpu().numpy()
     save_vars = [pca_recon, denoiser_recon, denoiser_optim, pca_mtx, optim_mtx]
     with open(run_name + '.npy', 'wb') as fl:
         [np.save(fl, var) for var in save_vars]
