@@ -116,9 +116,7 @@ def ln_optim(solver, loss, train, test,
 def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
                 batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95):
     # image size
-    np_size = [*train_set.shape[-3:]]
     im_size = test_torch.size()[1:]
-    n_pixel = np.prod(im_size)
 
     # wrap the model in DataParallel
     solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
@@ -134,14 +132,13 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
         loss = lambda pred, target: 1.0 - ssim(pred, target)
 
     # test with PCA for baseline performance
-    pca, mse_val, ssim_val, psnr_val, pca_recon = pca_projection(train_set, test_torch, n_sample)
+    pca_mtx, mse_val, ssim_val, psnr_val, pca_recon = \
+            pca_projection(train_set, test_torch, n_sample, im_size)
 
     # denoiser reconstruction with PCA matrix
-    solver_pca = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
-    solver_pca.assign(pca)
-
+    solver_pca = LinearInverse(n_sample, im_size, denoiser).to(DEVICE).assign(pca_mtx)
     mse_val, ssim_val, psnr_val, denoiser_recon = denoiser_avg(test_torch, solver_pca)
 
     # run optimization
-    solver = ln_optim(solver_gpu, loss, train_set, test_torch,
-        batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
+    solver_optim = ln_optim(solver_gpu, loss, train_set, test_torch,
+            batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)

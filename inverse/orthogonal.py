@@ -13,7 +13,7 @@ class OrthMatrix(RenderMatrix):
         n_pixel = np.prod(im_size)
 
         # init orthgonal matrix with householder product parameterization
-        linear = torch.nn.Linear(n_pixel, n_sample).to(device)        
+        linear = torch.nn.Linear(n_pixel, n_sample).to(device)
         self.para = para.orthogonal(linear, orthogonal_map='householder')
 
         super().__init__(self.para.weight, im_size, device)
@@ -68,6 +68,8 @@ class LinearInverse(nn.Module):
         self.linear.weight = mtx
         self.refresh()
 
+        return self
+
     def to(self, device):
         return_val = super().to(device)
         self.refresh()
@@ -97,7 +99,7 @@ class LinearInverse(nn.Module):
     def forward(self, x):
         """
         x: images of size [N, C, W, H]
-        
+
         Perform denoiser reconstruction on
         images based on linear measurements
         """
@@ -146,6 +148,6 @@ class LinearInverse(nn.Module):
             if t > self.max_t:
                 break
         self.last_t = t
-        
+
         # run a final denoise step and return the results
         return y + self.log_grad(y)
