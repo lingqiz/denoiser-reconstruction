@@ -24,7 +24,7 @@ def args():
 
     # arguments for optmization
     parser.add_argument('--batch_size',
-                        type=int, default=200,
+                        type=int, default=192,
                         help='input batch size for training')
     parser.add_argument('--n_epoch',
                         type=int,
@@ -32,10 +32,10 @@ def args():
                         help='number of epochs to train')
     parser.add_argument('--lr',
                         type=float,
-                        default=1e-4)
+                        default=5e-4)
     parser.add_argument('--decay_rate',
                         type=float,
-                        default=0.90)
+                        default=0.925)
     parser.add_argument('--loss_type',
                         type=str,
                         default='MSE')

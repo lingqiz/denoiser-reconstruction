@@ -136,12 +136,13 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
     solver_gpu = torch.nn.DataParallel(solver)
 
     # set up loss function for running the optimization
+    logging.info('Loss Type %s' % loss)
     if loss == 'MSE':
         loss = nn.MSELoss(reduction='sum').to(DEVICE)
 
     elif loss == 'SSIM':
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0, reduction='sum').to(DEVICE)
-        loss = lambda pred, target: 1.0 - ssim(pred, target)
+        loss = lambda pred, target: -ssim(pred, target)
 
     # test with PCA for baseline performance
     pca_mtx, mse_val, ssim_val, psnr_val, pca_recon = \
