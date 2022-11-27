@@ -82,7 +82,7 @@ def ln_optim(solver, loss, train, test,
 
             # run reconstruction
             recon = solver(batch)
-            error = loss(batch, recon)
+            error = loss(recon, batch)
 
             # optim step
             error.backward()
