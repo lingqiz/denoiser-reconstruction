@@ -28,14 +28,14 @@ def args():
                         help='input batch size for training')
     parser.add_argument('--n_epoch',
                         type=int,
-                        default=80,
+                        default=75,
                         help='number of epochs to train')
     parser.add_argument('--lr',
                         type=float,
-                        default=1e-3)
+                        default=1e-4)
     parser.add_argument('--decay_rate',
                         type=float,
-                        default=0.95)
+                        default=0.90)
     parser.add_argument('--loss_type',
                         type=str,
                         default='MSE')
