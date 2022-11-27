@@ -7,13 +7,13 @@ from tqdm import tqdm
 from inverse.orthogonal import LinearInverse
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
-from torchmetrics import StructuralSimilarityIndexMeasure as SSIM
+from torchmetrics import StructuralSimilarityIndexMeasure
 from sklearn.decomposition import PCA
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MSE = nn.MSELoss(reduction='sum').to(DEVICE)
-SSIM = SSIM(data_range=1.0).to(DEVICE)
+SSIM = StructuralSimilarityIndexMeasure(data_range=1.0).to(DEVICE)
 
 def pca_projection(train_set, test_torch, n_sample, im_size):
     # Compute PCA on the training set
@@ -140,7 +140,7 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
         loss = nn.MSELoss(reduction='sum').to(DEVICE)
 
     elif loss == 'SSIM':
-        ssim = SSIM(data_range=1.0, reduction='sum').to(DEVICE)
+        ssim = StructuralSimilarityIndexMeasure(data_range=1.0, reduction='sum').to(DEVICE)
         loss = lambda pred, target: 1.0 - ssim(pred, target)
 
     # test with PCA for baseline performance
