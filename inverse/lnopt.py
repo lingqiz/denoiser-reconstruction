@@ -109,7 +109,8 @@ def ln_optim(solver, loss, train, test,
         logging.info('Training loss value %.3f' % (avg_loss))
         logging.info('Test MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
                                     (mse_val, ssim_val, psnr_val))
-    return solver
+    
+    return np.array(batch_loss), np.array(epoch_loss)
 
 def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
                 batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95):
@@ -157,14 +158,16 @@ def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
                                         (mse_val, ssim_val, psnr_val))
 
     # run optimization
-    solver_optim = ln_optim(solver_gpu, loss, train_set, test_torch,
-            batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
-    mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_optim)    
+    batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
+                            batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
+    mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_gpu)    
 
     # save results
     pca_mtx = pca_mtx.detach().cpu().numpy()
     optim_mtx = solver.linear.weight.detach().cpu().numpy()
-    save_vars = [pca_recon, denoiser_recon, denoiser_optim, pca_mtx, optim_mtx]
+    save_vars = [pca_recon, denoiser_recon, denoiser_optim, 
+                 pca_mtx, optim_mtx, batch_loss, epoch_loss]
+    
     with open(run_name + '.npy', 'wb') as fl:
         [np.save(fl, var) for var in save_vars]
 
