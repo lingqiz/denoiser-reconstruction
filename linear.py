@@ -1,6 +1,7 @@
 import argparse
 import torch
 import numpy as np
+import json
 from utils.dataset import DataSet
 from models.denoiser import Denoiser
 from inverse.lnopt import run_optim
@@ -44,6 +45,9 @@ def args():
                         default=64)
 
     # see dataset.py for parameters for individual dataset
+    parser.add_argument('--dataset',
+                        type=str,
+                        default='islvrc48')
     parser.add_argument('--data_path',
                         type=str,
                         default='islvrc')
@@ -82,6 +86,18 @@ def args():
 
 args = args()
 
+# load dataset settings
+with open("data_config.json", "r") as fl:
+    data = json.load(fl)
+    path, psize, tsize, pscale, tscale = data[args.dataset]
+    
+    # set up parameters for loading the dataset
+    args.data_path = path
+    args.patch_size = psize
+    args.test_size = tsize
+    args.scales = pscale
+    args.test_scale = tscale
+
 # load training and test set
 data = DataSet.load_dataset(args)
 train_set = torch.from_numpy(data.train_set())
@@ -97,8 +113,10 @@ model = Denoiser(args)
 model.load_state_dict(torch.load(args.model_path))
 model = model.eval()
 
+# setup save name
+save_name = args.data_path + str(args.patch_size[0])
+
 # run optimization
-run_optim(train_set, test_torch, model,
-        args.n_sample, args.loss_type,
-        args.batch_size, args.n_epoch,
-        args.lr, args.decay_rate)
+run_optim(train_set, test_torch, model, save_name, 
+          args.n_sample, args.loss_type, args.batch_size, 
+          args.n_epoch, args.lr, args.decay_rate)

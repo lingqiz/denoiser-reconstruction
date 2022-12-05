@@ -112,11 +112,12 @@ def ln_optim(solver, loss, train, test,
     
     return np.array(batch_loss), np.array(epoch_loss)
 
-def run_optim(train_set, test_torch, denoiser, n_sample, loss='MSE',
-                batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95):
+def run_optim(train_set, test_torch, denoiser, save_name, 
+              n_sample, loss='MSE', batch_size=200, 
+              n_epoch=75, lr=1e-3, gamma=0.95):
 
     # print relevant information
-    run_name = './design/results/%d_%s_im48' % (n_sample, loss)
+    run_name = './design/results/%d_%s_%s' % (n_sample, loss, save_name)
 
     logging.basicConfig(
         level=logging.INFO,
