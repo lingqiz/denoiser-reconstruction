@@ -99,6 +99,9 @@ with open("data_config.json", "r") as fl:
     for idx in range(len(keys)):
         dict_args[keys[idx]] = arg_vals[idx]    
 
+# list all arguments and values
+config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
+
 # load training and test set
 data = DataSet.load_dataset(args)
 train_set = torch.from_numpy(data.train_set())
@@ -118,6 +121,6 @@ model = model.eval()
 save_name = args.data_path + str(args.patch_size[0])
 
 # run optimization
-run_optim(train_set, test_torch, model, save_name, 
+run_optim(train_set, test_torch, model, save_name, config_str,
           args.n_sample, args.loss_type, args.batch_size, 
           args.n_epoch, args.lr, args.decay_rate)

@@ -113,9 +113,8 @@ def ln_optim(solver, loss, train, test,
     
     return np.array(batch_loss), np.array(epoch_loss)
 
-def run_optim(train_set, test_torch, denoiser, save_name, 
-              n_sample, loss='MSE', batch_size=200, 
-              n_epoch=75, lr=1e-3, gamma=0.95):
+def run_optim(train_set, test_torch, denoiser, save_name, config_str,
+    n_sample, loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95):
 
     # print relevant information
     run_name = './design/results/%d_%s_%s' % (n_sample, loss, save_name)
@@ -127,6 +126,8 @@ def run_optim(train_set, test_torch, denoiser, save_name,
         handlers=[
             logging.FileHandler(run_name + '.log'),
             logging.StreamHandler(sys.stdout)])
+    
+    logging.info(config_str)
 
     # image and dataset size
     im_size = test_torch.size()[1:]
