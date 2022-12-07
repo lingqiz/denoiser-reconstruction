@@ -85,18 +85,21 @@ def args():
     return args
 
 args = args()
+dict_args = vars(args)
 
 # load dataset settings
+keys = ['data_path', 'patch_size', 'test_size', 'scales', 
+        'test_scale', 'model_path', 'padding', 'kernel_size']
+
 with open("data_config.json", "r") as fl:
     data = json.load(fl)
-    path, psize, tsize, pscale, tscale = data[args.dataset]
+    arg_vals = data[args.dataset]
     
     # set up parameters for loading the dataset
-    args.data_path = path
-    args.patch_size = psize
-    args.test_size = tsize
-    args.scales = pscale
-    args.test_scale = tscale
+    for idx in range(len(keys)):
+        dict_args[keys[idx]] = arg_vals[idx]    
+
+print(args)
 
 # load training and test set
 data = DataSet.load_dataset(args)
