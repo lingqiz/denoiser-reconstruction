@@ -99,8 +99,6 @@ with open("data_config.json", "r") as fl:
     for idx in range(len(keys)):
         dict_args[keys[idx]] = arg_vals[idx]    
 
-print(args)
-
 # load training and test set
 data = DataSet.load_dataset(args)
 train_set = torch.from_numpy(data.train_set())
