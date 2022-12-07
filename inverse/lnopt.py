@@ -24,7 +24,8 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     mtx = torch.from_numpy(pca.components_).to(DEVICE)
     image_vec = test_torch.transpose(2, 3).flatten(1)
     recon_vec = image_vec @ mtx.t() @ mtx
-    recon_torch = recon_vec.reshape([-1, *im_size]).transpose(2, 3)
+    recon_shape = torch.tensor([-1, *im_size]).transpose(2, 3)
+    recon_torch = recon_vec.reshape(recon_shape).transpose(2, 3)
 
     # compute metric
     mse_val = MSE(test_torch, recon_torch) / test_torch.shape[0]

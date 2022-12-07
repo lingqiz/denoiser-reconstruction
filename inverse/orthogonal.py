@@ -93,7 +93,7 @@ class LinearInverse(nn.Module):
         """
         m: vectors of size [N, M]
         """
-        new_shape = [-1, *self.im_size]
+        new_shape = torch.tensor([-1, *self.im_size]).transpose(2, 3)
         return torch.matmul(m, self.mtx).reshape(new_shape).transpose(2, 3)
 
     def forward(self, x):
