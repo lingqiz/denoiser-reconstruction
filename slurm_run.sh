@@ -1,4 +1,5 @@
 #!/bin/bash
+#SBATCH --job-name=lnopt
 #SBATCH -N1
 #SBATCH -p gpu
 #SBATCH --gpus=4
