@@ -150,7 +150,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0, reduction='sum').to(DEVICE)
         loss = lambda pred, target: -ssim(pred, target)
         
-    elif loss == 'MS-SSIM':
+    elif loss == 'MS_SSIM':
         ms_ssim = MultiScaleStructuralSimilarityIndexMeasure(data_range=1.0, reduction='sum').to(DEVICE)
         loss = lambda pred, target: -ms_ssim(pred, target)
 
