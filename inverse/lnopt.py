@@ -8,12 +8,14 @@ from inverse.orthogonal import LinearInverse
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
 from torchmetrics import StructuralSimilarityIndexMeasure
+from torchmetrics import MultiScaleStructuralSimilarityIndexMeasure
 from sklearn.decomposition import PCA
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MSE = nn.MSELoss(reduction='sum').to(DEVICE)
 SSIM = StructuralSimilarityIndexMeasure(data_range=1.0).to(DEVICE)
+MS_SSIM = MultiScaleStructuralSimilarityIndexMeasure(data_range=1.0).to(DEVICE)
 
 def pca_projection(train_set, test_torch, n_sample, im_size):
     # Compute PCA on the training set
@@ -30,12 +32,13 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     # compute metric
     mse_val = MSE(test_torch, recon_torch) / test_torch.shape[0]
     ssim_val = SSIM(recon_torch, test_torch)
+    mssim_val = MS_SSIM(recon_torch, test_torch)
     psnr_val = psnr(image_vec.detach().cpu().numpy(),
                     recon_vec.detach().cpu().numpy())
 
     # reconstructed test images
     recon_numpy = recon_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
-    return mtx, mse_val.item(), ssim_val.item(), psnr_val, recon_numpy
+    return mtx, mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
 def denoiser_avg(test_torch, solver, n_avg=5):
     with torch.no_grad():
@@ -48,16 +51,16 @@ def denoiser_avg(test_torch, solver, n_avg=5):
         # compute metric
         mse_val = MSE(test_torch, recon) / test_torch.shape[0]
         ssim_val = SSIM(recon, test_torch)
+        mssim_val = MS_SSIM(recon, test_torch)
 
         test_numpy = test_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
         recon_numpy = recon.permute([0, 2, 3, 1]).detach().cpu().numpy()
         psnr_val = psnr(test_numpy, recon_numpy)
 
-        return mse_val.item(), ssim_val.item(), psnr_val, recon_numpy
+        return mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def ln_optim(solver, loss, train, test,
-             batch_size=200, n_epoch=50,
-             lr=1e-3, gamma=0.95):
+def ln_optim(solver, loss, train, test, batch_size=200, 
+             n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False):
 
     # training data
     n_batch = np.ceil(train.shape[0] / batch_size)
@@ -69,7 +72,7 @@ def ln_optim(solver, loss, train, test,
 
     batch_loss = []
     epoch_loss = []
-    pbar = tqdm(total=int(n_batch))
+    pbar = tqdm(total=int(n_batch), disable=(not show_bar))
 
     # Run n_epoch of training
     for epoch in range(n_epoch):
@@ -103,18 +106,17 @@ def ln_optim(solver, loss, train, test,
         scheduler.step()
 
         # compute performance on test set
-        mse_val, ssim_val, psnr_val = denoiser_avg(test, solver)[:-1]
+        test_vals = denoiser_avg(test, solver)[:-1]
 
         # log training information
         logging.info('Epoch %d/%d' % (epoch + 1, n_epoch))
         logging.info('Training loss value %.3f' % (avg_loss))
-        logging.info('Test MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
-                                    (mse_val, ssim_val, psnr_val))
+        logging.info('Test MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % test_vals)                                    
     
     return np.array(batch_loss), np.array(epoch_loss)
 
-def run_optim(train_set, test_torch, denoiser, save_name, config_str,
-    n_sample, loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95):
+def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
+              loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
 
     # print relevant information
     run_name = './design/results/%d_%s_%s' % (n_sample, loss, save_name)
@@ -143,27 +145,33 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str,
     logging.info('Loss Type %s' % loss)
     if loss == 'MSE':
         loss = nn.MSELoss(reduction='sum').to(DEVICE)
-
+        
     elif loss == 'SSIM':
         ssim = StructuralSimilarityIndexMeasure(data_range=1.0, reduction='sum').to(DEVICE)
         loss = lambda pred, target: -ssim(pred, target)
+        
+    elif loss == 'MS-SSIM':
+        ms_ssim = MultiScaleStructuralSimilarityIndexMeasure(data_range=1.0, reduction='sum').to(DEVICE)
+        loss = lambda pred, target: -ms_ssim(pred, target)
 
     # test with PCA for baseline performance
-    pca_mtx, mse_val, ssim_val, psnr_val, pca_recon = \
-            pca_projection(train_set, test_torch, n_sample, im_size)
-    logging.info('PCA MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
-                                (mse_val, ssim_val, psnr_val))
+    pca_mtx, mse_val, ssim_val, mssim_val, psnr_val, pca_recon = \
+            pca_projection(train_set, test_torch, n_sample, im_size)                        
+    logging.info('PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
+                                (mse_val, ssim_val, mssim_val, psnr_val))
 
     # denoiser reconstruction with PCA matrix
     solver_pca = LinearInverse(n_sample, im_size, denoiser).to(DEVICE).assign(pca_mtx)
-    mse_val, ssim_val, psnr_val, denoiser_recon = denoiser_avg(test_torch, solver_pca)
-    logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, PSNR %.3f \n' % \
-                                        (mse_val, ssim_val, psnr_val))
+    mse_val, ssim_val, mssim_val, psnr_val, denoiser_recon = denoiser_avg(test_torch, solver_pca)
+    logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
+                                (mse_val, ssim_val, mssim_val, psnr_val))
 
     # run optimization
-    batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
-                            batch_size=batch_size, n_epoch=n_epoch, lr=lr, gamma=gamma)
-    mse_val, ssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_gpu)    
+    batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch, 
+                                      batch_size=batch_size, n_epoch=n_epoch, 
+                                      lr=lr, gamma=gamma, show_bar=show_bar)
+    # run on test set
+    mse_val, ssim_val, mssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_gpu)    
 
     # save results
     pca_mtx = pca_mtx.detach().cpu().numpy()

@@ -22,6 +22,9 @@ def args():
     parser.add_argument('--model_path',
                         type=str,
                         default='./assets/conv3_ln.pt')
+    parser.add_argument('--pbar',
+                        type=bool,
+                        default=False)
 
     # arguments for optmization
     parser.add_argument('--batch_size',
@@ -123,4 +126,4 @@ save_name = args.data_path + str(args.patch_size[0])
 # run optimization
 run_optim(train_set, test_torch, model, save_name, config_str,
           args.n_sample, args.loss_type, args.batch_size, 
-          args.n_epoch, args.lr, args.decay_rate)
+          args.n_epoch, args.lr, args.decay_rate, args.pbar)
