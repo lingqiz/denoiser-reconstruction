@@ -15,7 +15,7 @@ from skimage.metrics import peak_signal_noise_ratio as psnr
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MSE = nn.MSELoss(reduction='sum').to(DEVICE)
 SSIM = MetricSSIM(data_range=1.0, sigma=1.0).to(DEVICE)
-MS_SSIM = MetricMS_SSIM(data_range=1.0, kernel_size=5, sigma=1.0, 
+MS_SSIM = MetricMS_SSIM(data_range=1.0, kernel_size=5, sigma=1.0,
                         betas=(0.347, 0.366, 0.287)).to(DEVICE)
 
 def pca_projection(train_set, test_torch, n_sample, im_size):
@@ -60,7 +60,7 @@ def denoiser_avg(test_torch, solver, n_avg=5):
 
         return mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def ln_optim(solver, loss, train, test, batch_size=200, 
+def ln_optim(solver, loss, train, test, batch_size=200,
              n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False):
 
     # training data
@@ -112,11 +112,11 @@ def ln_optim(solver, loss, train, test, batch_size=200,
         # log training information
         logging.info('Epoch %d/%d' % (epoch + 1, n_epoch))
         logging.info('Training loss value %.3f' % (avg_loss))
-        logging.info('Test MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % test_vals)                                    
-    
+        logging.info('Test MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % test_vals)
+
     return np.array(batch_loss), np.array(epoch_loss)
 
-def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
+def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
               loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
 
     # print relevant information
@@ -129,7 +129,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
         handlers=[
             logging.FileHandler(run_name + '.log'),
             logging.StreamHandler(sys.stdout)])
-    
+
     logging.info(config_str)
 
     # image and dataset size
@@ -146,19 +146,19 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
     logging.info('Loss Type %s' % loss)
     if loss == 'MSE':
         loss = nn.MSELoss(reduction='sum').to(DEVICE)
-        
+
     elif loss == 'SSIM':
         ssim = MetricSSIM(data_range=1.0, sigma=1.0, reduction='sum').to(DEVICE)
         loss = lambda pred, target: -ssim(pred, target)
-        
+
     elif loss == 'MS_SSIM':
-        ms_ssim = MetricMS_SSIM(data_range=1.0, kernel_size=5, sigma=1.0, 
+        ms_ssim = MetricMS_SSIM(data_range=1.0, kernel_size=5, sigma=1.0,
                     reduction='sum', betas=(0.347, 0.366, 0.287)).to(DEVICE)
         loss = lambda pred, target: -ms_ssim(pred, target)
 
     # test with PCA for baseline performance
     pca_mtx, mse_val, ssim_val, mssim_val, psnr_val, pca_recon = \
-            pca_projection(train_set, test_torch, n_sample, im_size)                        
+            pca_projection(train_set, test_torch, n_sample, im_size)
     logging.info('PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
@@ -169,18 +169,18 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
     # run optimization
-    batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch, 
-                                      batch_size=batch_size, n_epoch=n_epoch, 
+    batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
+                                      batch_size=batch_size, n_epoch=n_epoch,
                                       lr=lr, gamma=gamma, show_bar=show_bar)
     # run on test set
-    mse_val, ssim_val, mssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_gpu)    
+    mse_val, ssim_val, mssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_gpu)
 
     # save results
     pca_mtx = pca_mtx.detach().cpu().numpy()
     optim_mtx = solver.linear.weight.detach().cpu().numpy()
-    save_vars = [pca_recon, denoiser_recon, denoiser_optim, 
+    save_vars = [pca_recon, denoiser_recon, denoiser_optim,
                  pca_mtx, optim_mtx, batch_loss, epoch_loss]
-    
+
     with open(run_name + '.npy', 'wb') as fl:
         [np.save(fl, var) for var in save_vars]
 
