@@ -125,6 +125,7 @@ class LinearInverse(nn.Module):
         t = 1
         while torch.min(sigma) > self.sig_end:
             # update step size
+            h = self.h_init
             if self.h_increase:
                 h = (self.h_init * t) / (1 + self.h_init * (t - 1))
 
