@@ -40,6 +40,7 @@ class LinearInverse(nn.Module):
         self.im_size = im_size
         self.n_pixel = np.prod(im_size)
         self.n_sample = n_sample
+        self.h_increase = True
 
         # no grad flag for the denoiser model
         for param in self.model.parameters():
@@ -124,7 +125,8 @@ class LinearInverse(nn.Module):
         t = 1
         while torch.min(sigma) > self.sig_end:
             # update step size
-            h = (self.h_init * t) / (1 + self.h_init * (t - 1))
+            if self.h_increase:
+                h = (self.h_init * t) / (1 + self.h_init * (t - 1))
 
             # projected log prior gradient
             d = self.log_grad(y)
