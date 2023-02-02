@@ -91,16 +91,16 @@ args = args()
 dict_args = vars(args)
 
 # load dataset settings
-keys = ['data_path', 'patch_size', 'test_size', 'scales', 
+keys = ['data_path', 'patch_size', 'test_size', 'scales',
         'test_scale', 'model_path', 'padding', 'kernel_size']
 
 with open("data_config.json", "r") as fl:
     data = json.load(fl)
     arg_vals = data[args.dataset]
-    
+
     # set up parameters for loading the dataset
     for idx in range(len(keys)):
-        dict_args[keys[idx]] = arg_vals[idx]    
+        dict_args[keys[idx]] = arg_vals[idx]
 
 # list all arguments and values
 config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
@@ -125,5 +125,5 @@ save_name = args.data_path + str(args.patch_size[0])
 
 # run optimization
 run_optim(train_set, test_torch, model, save_name, config_str,
-          args.n_sample, args.loss_type, args.batch_size, 
+          args.n_sample, args.loss_type, args.batch_size,
           args.n_epoch, args.lr, args.decay_rate, args.pbar)
