@@ -4,7 +4,7 @@ import torch.nn as nn
 import logging
 import sys
 from tqdm import tqdm
-from inverse.orthogonal import LinearInverse
+from inverse.orthogonal import LinearInverse, LinearProjection
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
 from torchmetrics import StructuralSimilarityIndexMeasure as MetricSSIM
@@ -41,7 +41,7 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     recon_numpy = recon_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
     return mtx, mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def denoiser_avg(test_torch, solver, n_avg=5):
+def recon_avg(test_torch, solver, n_avg=5):
     with torch.no_grad():
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
@@ -107,7 +107,7 @@ def ln_optim(solver, loss, train, test, batch_size=200,
         scheduler.step()
 
         # compute performance on test set
-        test_vals = denoiser_avg(test, solver)[:-1]
+        test_vals = recon_avg(test, solver)[:-1]
 
         # log training information
         logging.info('Epoch %d/%d' % (epoch + 1, n_epoch))
@@ -116,11 +116,8 @@ def ln_optim(solver, loss, train, test, batch_size=200,
 
     return np.array(batch_loss), np.array(epoch_loss)
 
-def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
-              loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
-
-    # print relevant information
-    run_name = './design/results/%d_%s_%s' % (n_sample, loss, save_name)
+# helper function
+def optim_init(run_name, config_str, train_set, test_torch, loss):
 
     logging.basicConfig(
         level=logging.INFO,
@@ -137,11 +134,6 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
     logging.info('# Training Data: %d' % train_set.shape[0])
     logging.info('# Test Data: %d \n' % test_torch.shape[0])
 
-    # wrap the model in DataParallel
-    solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
-    solver.max_t = 60
-    solver_gpu = torch.nn.DataParallel(solver)
-
     # set up loss function for running the optimization
     logging.info('Loss Type %s' % loss)
     if loss == 'MSE':
@@ -156,6 +148,20 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
                     reduction='sum', betas=(0.347, 0.366, 0.287)).to(DEVICE)
         loss = lambda pred, target: -ms_ssim(pred, target)
 
+    return im_size, loss
+
+def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
+              loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
+
+    # print relevant information and setups
+    run_name = './design/results/%d_%s_%s' % (n_sample, loss, save_name)
+    im_size, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
+
+    # wrap the model in DataParallel
+    solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
+    solver.max_t = 60
+    solver_gpu = torch.nn.DataParallel(solver)
+
     # test with PCA for baseline performance
     pca_mtx, mse_val, ssim_val, mssim_val, psnr_val, pca_recon = \
             pca_projection(train_set, test_torch, n_sample, im_size)
@@ -164,7 +170,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
 
     # denoiser reconstruction with PCA matrix
     solver_pca = LinearInverse(n_sample, im_size, denoiser).to(DEVICE).assign(pca_mtx)
-    mse_val, ssim_val, mssim_val, psnr_val, denoiser_recon = denoiser_avg(test_torch, solver_pca)
+    mse_val, ssim_val, mssim_val, psnr_val, denoiser_recon = recon_avg(test_torch, solver_pca)
     logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
@@ -173,13 +179,44 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
                                       batch_size=batch_size, n_epoch=n_epoch,
                                       lr=lr, gamma=gamma, show_bar=show_bar)
     # run on test set
-    mse_val, ssim_val, mssim_val, psnr_val, denoiser_optim = denoiser_avg(test_torch, solver_gpu)
+    mse_val, ssim_val, mssim_val, psnr_val, denoiser_optim = recon_avg(test_torch, solver_gpu)
 
     # save results
     pca_mtx = pca_mtx.detach().cpu().numpy()
     optim_mtx = solver.linear.weight.detach().cpu().numpy()
     save_vars = [pca_recon, denoiser_recon, denoiser_optim,
                  pca_mtx, optim_mtx, batch_loss, epoch_loss]
+
+    with open(run_name + '.npy', 'wb') as fl:
+        [np.save(fl, var) for var in save_vars]
+
+    return save_vars
+
+def gnl_pca(train_set, test_torch, save_name, config_str, n_sample,
+        loss='MSE', batch_size=2048, n_epoch=50, lr=1e-3, gamma=0.95):
+    '''
+    A generalized PCA methods that can take different loss function,
+    in addtion to the standard MSE (i.e., max variance) objective
+    '''
+
+    # print relevant information and setups
+    run_name = './design/results/PCA_%d_%s_%s' % (n_sample, loss, save_name)
+    im_size, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
+
+    # wrap the linear projection module in DataParallel
+    solver = LinearProjection(n_sample, im_size).to(DEVICE)
+    solver_gpu = torch.nn.DataParallel(solver)
+
+    # run optimization
+    batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
+                                        batch_size=batch_size, n_epoch=n_epoch,
+                                        lr=lr, gamma=gamma, show_bar=False)
+
+    lnopt_recon = recon_avg(test_torch, solver_gpu, n_avg=1)[-1]
+
+    # save solutions
+    lnopt_mtx = solver.linear.weight.detach().cpu().numpy()
+    save_vars = [lnopt_recon, lnopt_mtx]
 
     with open(run_name + '.npy', 'wb') as fl:
         [np.save(fl, var) for var in save_vars]

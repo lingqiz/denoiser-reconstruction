@@ -154,3 +154,28 @@ class LinearInverse(nn.Module):
 
         # run a final denoise step and return the results
         return y + self.log_grad(y)
+
+class LinearProjection(nn.Module):
+    '''
+    Linear projection with orthogonalized measurement matrix
+    '''
+
+    def __init__(self, n_sample, im_size):
+        self.im_size = im_size
+        self.n_pixel = np.prod(im_size)
+        self.n_sample = n_sample
+
+        # initialize an orthogonal linear measurement matrix
+        linear = torch.nn.Linear(self.n_pixel, self.n_sample)
+        self.linear = para.orthogonal(linear, orthogonal_map='householder')
+
+    def forward(self, x):
+        # measurement matrix
+        proj_mtx = self.linear.weight
+
+        # compute projection
+        x_flat = x.transpose(2, 3).flatten(1)
+        recon_flat = x_flat @ proj_mtx.t() @ proj_mtx
+
+        new_shape = [-1, self.im_size[0], self.im_size[2], self.im_size[1]]
+        return recon_flat.reshape(new_shape).transpose(2, 3)
