@@ -193,7 +193,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
     return save_vars
 
 def gnl_pca(train_set, test_torch, save_name, config_str, n_sample,
-        loss='MSE', batch_size=2048, n_epoch=50, lr=1e-3, gamma=0.95):
+            loss='MSE', batch_size=2048, n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False):
     '''
     A generalized PCA methods that can take different loss function,
     in addtion to the standard MSE (i.e., max variance) objective
@@ -210,13 +210,13 @@ def gnl_pca(train_set, test_torch, save_name, config_str, n_sample,
     # run optimization
     batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
                                         batch_size=batch_size, n_epoch=n_epoch,
-                                        lr=lr, gamma=gamma, show_bar=False)
+                                        lr=lr, gamma=gamma, show_bar=show_bar)
 
     lnopt_recon = recon_avg(test_torch, solver_gpu, n_avg=1)[-1]
 
     # save solutions
     lnopt_mtx = solver.linear.weight.detach().cpu().numpy()
-    save_vars = [lnopt_recon, lnopt_mtx]
+    save_vars = [lnopt_recon, lnopt_mtx, batch_loss, epoch_loss]
 
     with open(run_name + '.npy', 'wb') as fl:
         [np.save(fl, var) for var in save_vars]

@@ -4,7 +4,7 @@ import numpy as np
 import json
 from utils.dataset import DataSet
 from models.denoiser import Denoiser
-from inverse.lnopt import run_optim
+from inverse.lnopt import run_optim, gnl_pca
 
 # run argument parser
 def args():
@@ -46,6 +46,9 @@ def args():
     parser.add_argument('--n_sample',
                         type=int,
                         default=64)
+    parser.add_argument('--recon_method',
+                        type=str,
+                        default='denoiser')
 
     # see dataset.py for parameters for individual dataset
     parser.add_argument('--dataset',
@@ -115,15 +118,19 @@ np.random.shuffle(test_set)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
 
-# load denoiser model
-model = Denoiser(args)
-model.load_state_dict(torch.load(args.model_path))
-model = model.eval()
-
 # setup save name
 save_name = args.data_path + str(args.patch_size[0])
+paras = [args.n_sample, args.loss_type, args.batch_size,
+            args.n_epoch, args.lr, args.decay_rate, args.pbar]
 
-# run optimization
-run_optim(train_set, test_torch, model, save_name, config_str,
-          args.n_sample, args.loss_type, args.batch_size,
-          args.n_epoch, args.lr, args.decay_rate, args.pbar)
+if args.recon_method == 'denoiser':
+    # load denoiser model
+    model = Denoiser(args)
+    model.load_state_dict(torch.load(args.model_path))
+    model = model.eval()
+
+    # run optimization
+    run_optim(train_set, test_torch, model, save_name, config_str, *paras)
+
+elif args.recon_method == 'linear':
+    gnl_pca(train_set, test_torch, save_name, config_str, *paras)
