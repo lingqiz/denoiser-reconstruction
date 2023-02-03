@@ -11,4 +11,4 @@ cd ~/denoiser_recon/
 module load cuda
 source recon/bin/activate
 
-python3 linear.py --n_sample $NSP --batch_size $BSZ --n_epoch $NEP --dataset $DST --loss_type $LST
+python3 linear.py --n_sample $NSP --batch_size $BSZ --n_epoch $NEP --dataset $DST --loss_type $LST --recon_method $MTD

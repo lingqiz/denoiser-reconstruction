@@ -133,4 +133,5 @@ if args.recon_method == 'denoiser':
     run_optim(train_set, test_torch, model, save_name, config_str, *paras)
 
 elif args.recon_method == 'linear':
+    # run optimization
     gnl_pca(train_set, test_torch, save_name, config_str, *paras)
