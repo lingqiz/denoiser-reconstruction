@@ -161,6 +161,8 @@ class LinearProjection(nn.Module):
     '''
 
     def __init__(self, n_sample, im_size):
+        super().__init__()
+        
         self.im_size = im_size
         self.n_pixel = np.prod(im_size)
         self.n_sample = n_sample
