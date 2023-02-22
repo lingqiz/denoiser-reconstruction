@@ -96,24 +96,20 @@ class LinearInverse(nn.Module):
         """
         new_shape = [-1, self.im_size[0], self.im_size[2], self.im_size[1]]
         return torch.matmul(m, self.mtx).reshape(new_shape).transpose(2, 3)
-
-    def forward(self, x):
+    
+    def inverse(self, msmt):
         """
-        x: images of size [N, C, W, H]
-
+        msmt: measurements of images
+        
         Perform denoiser reconstruction on
         images based on linear measurements
         """
-        # update the measurement matrix
-        # based on the parameterization
-        self.refresh()
-
         # measurement matrix calculation
         M = self.measure
         M_T = self.recon
 
         # init variables
-        proj = M_T(M(x))
+        proj = M_T(msmt)
         e = torch.ones_like(proj)
         n = torch.numel(e[0])
         mu = 0.5 * (e - M_T(M(e))) + proj
@@ -153,7 +149,24 @@ class LinearInverse(nn.Module):
         self.last_t = t
 
         # run a final denoise step and return the results
-        return y + self.log_grad(y)
+        return y + self.log_grad(y)  
+
+    def forward(self, x):
+        """
+        x: images of size [N, C, W, H]
+
+        Perform denoiser reconstruction on
+        images based on linear measurements
+        """
+        # update the measurement matrix
+        # based on the parameterization
+        self.refresh()
+        
+        # compute the linear measurement
+        msmt = self.measure(x)
+        
+        # run the reconstruction routine
+        return self.inverse(msmt)
 
 class LinearProjection(nn.Module):
     '''
