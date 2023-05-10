@@ -30,7 +30,7 @@ def args():
                         default=100,
                         help='number of epochs to train')
     parser.add_argument('--noise_level',
-                        default=[0, 128])
+                        default=[0, 255])
     parser.add_argument('--lr',
                         type=float,
                         default=6e-4)

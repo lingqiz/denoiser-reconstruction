@@ -1,4 +1,4 @@
-import torch, torch.nn as nn, time, datetime, random
+import torch, torch.nn as nn, time, datetime, random, math
 import torch.distributed as dist
 from models.denoiser import Denoiser
 from torch.optim import Adam
@@ -9,10 +9,19 @@ from utils.dataset import test_model
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.utils.data.distributed import DistributedSampler as DSP
 
-def sample_noise(size, noise_level):
+def sample_noise(size, noise_level, biased=False):
     noise = torch.empty(size=size)
+
     for idx in range(int(size[0])):
-        noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
+        # determine noise S.D.
+        if biased:
+            lb = math.sqrt(noise_level[0] / 255.0)
+            ub = math.sqrt(noise_level[1] / 255.0)
+            noise_sd = math.pow(lb + (ub - lb) * random.random(), 2)
+        else:
+            noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
+
+        # sample Gaussian i.i.d. noise
         noise[idx] = torch.normal(mean=0.0, std=noise_sd, size=list(size[1:]))
 
     return noise
@@ -40,7 +49,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
 
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(rank)
-            noise = sample_noise(batch.size(), args.noise_level).to(rank)
+            noise = sample_noise(batch.size(), args.noise_level, biased=True).to(rank)
             noise_input = batch + noise
 
             # auto mixed precision forward pass
