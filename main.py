@@ -40,10 +40,10 @@ def args():
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
-    parser.add_argument('bias_sd',
+    parser.add_argument('--bias_sd',
                         type=bool,
                         default=False)
-    parser.add_argument('scale_image',
+    parser.add_argument('--scale_image',
                         type=bool,
                         default=False)
     parser.add_argument('--ddp',
