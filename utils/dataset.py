@@ -85,6 +85,8 @@ class DataSet:
             return SingleImage(args, test_mode)
         if args.data_path == 'intrinsic':
             return CGIntrinsic(test_mode)
+        if args.data_path == 'cifar':
+            return CIFAR()
 
         # load other dataset from files
         return DataFromFile(args, test_mode)
@@ -255,3 +257,17 @@ class CGIntrinsic(DataSet):
 
         self.test_patches = all_image[:self.N_TEST, :]
         self.train_patches = all_image[self.N_TEST:, :]
+
+class CIFAR(DataSet):
+    def __init__(self):
+        # file path for CIFAR dataset
+        file_path = os.path.join('utils', 'dataset',
+                                 'CIFAR', 'CIFAR_ALL.npy')
+
+        # load npy file
+        with open(file_path, 'rb') as fl:
+            test = np.load(fl)
+            train = np.load(fl)
+
+        self.test_patches = test
+        self.train_patches = train
