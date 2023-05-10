@@ -14,12 +14,9 @@ def sample_noise(size, noise_level, biased=False):
 
     for idx in range(int(size[0])):
         # determine noise S.D.
+        noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
         if biased:
-            lb = math.sqrt(noise_level[0] / 255.0)
-            ub = math.sqrt(noise_level[1] / 255.0)
-            noise_sd = math.pow(lb + (ub - lb) * random.random(), 2)
-        else:
-            noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
+            noise_sd = math.pow(noise_sd, 2)
 
         # sample Gaussian i.i.d. noise
         noise[idx] = torch.normal(mean=0.0, std=noise_sd, size=list(size[1:]))
