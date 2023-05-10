@@ -35,10 +35,17 @@ def args():
                         type=float,
                         default=6e-4)
     parser.add_argument('--decay_epoch',
-                        default=[40, 60, 80, 100])
+                        default=[40, 60, 80, 100, 
+                                 125, 150, 175, 200])
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.50)
+    parser.add_argument('bias_sd',
+                        type=bool,
+                        default=False)
+    parser.add_argument('scale_image',
+                        type=bool,
+                        default=False)
     parser.add_argument('--ddp',
                         type=bool,
                         default=False,

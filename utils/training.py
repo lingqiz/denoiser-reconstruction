@@ -46,7 +46,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
 
             # images in torch are in [c, h, w] format
             batch = batch.permute(0, 3, 1, 2).contiguous().to(rank)
-            noise = sample_noise(batch.size(), args.noise_level, biased=True).to(rank)
+            noise = sample_noise(batch.size(), args.noise_level, args.bias_sd).to(rank)
             noise_input = batch + noise
 
             # auto mixed precision forward pass
