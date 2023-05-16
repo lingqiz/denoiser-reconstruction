@@ -161,11 +161,11 @@ class MNIST(DataSet):
         train = torchvision.datasets.MNIST('./utils/dataset', train=True, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor()])).data
-        
+
         test = torchvision.datasets.MNIST('./utils/dataset', train=False, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor()])).data
-        
+
         mnist = torch.cat([train, test])
 
         # make them color images
