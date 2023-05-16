@@ -173,9 +173,9 @@ class MNIST(DataSet):
 
             image = np.empty([28, 28, 3])
             image[sample == 0, :] = np.random.rand(3, )
-            image[sample != 0, :] = np.random.rand(3, )            
+            image[sample != 0, :] = np.random.rand(3, )
             image = cv2.resize(image, (32, 32))
-            
+
             all_image.append(image.astype(np.single))
 
         all_image = np.stack(all_image)
