@@ -85,8 +85,8 @@ class DataSet:
             return SingleImage(args, test_mode)
         if args.data_path == 'intrinsic':
             return CGIntrinsic(test_mode)
-        if args.data_path.startswith('cifar'):
-            return CIFAR(args.data_path)
+        if args.data_path.startswith('npy_'):
+            return NPYImage(args.data_path)
 
         # load other dataset from files
         return DataFromFile(args, test_mode)
@@ -161,9 +161,11 @@ class MNIST(DataSet):
         train = torchvision.datasets.MNIST('./utils/dataset', train=True, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor()])).data
+        
         test = torchvision.datasets.MNIST('./utils/dataset', train=False, download=True,
                              transform=torchvision.transforms.Compose([
                                torchvision.transforms.ToTensor()])).data
+        
         mnist = torch.cat([train, test])
 
         # make them color images
@@ -259,17 +261,18 @@ class CGIntrinsic(DataSet):
         self.test_patches = all_image[:self.N_TEST, :]
         self.train_patches = all_image[self.N_TEST:, :]
 
-class CIFAR(DataSet):
+class NPYImage(DataSet):
     def __init__(self, data_path):
         '''
-        Load CIFAR dataset, options are:
-            - cifar_all
-            - cifar_10
-            - cifar_cars
+        Load image dataset with npy format, options are:
+            - npy_cifar_all
+            - npy_cifar_10
+            - npy_cifar_cars
+            - npy_celeba_tiny
         '''
         # file path for CIFAR dataset
-        file_path = os.path.join('utils', 'dataset', 'CIFAR',
-                                 data_path + '.npy')
+        file_path = os.path.join('utils', 'dataset', 'NPYs',
+                                 data_path[4:] + '.npy')
 
         # load npy file
         with open(file_path, 'rb') as fl:
