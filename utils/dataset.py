@@ -279,5 +279,5 @@ class NPYImage(DataSet):
             test = np.load(fl)
             train = np.load(fl)
 
-        self.test_patches = test
-        self.train_patches = train
+        self.test_patches = test.astype(np.float32)
+        self.train_patches = train.astype(np.float32)
