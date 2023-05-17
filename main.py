@@ -33,13 +33,10 @@ def args():
                         default=[0, 200])
     parser.add_argument('--lr',
                         type=float,
-                        default=1e-3)
-    parser.add_argument('--decay_epoch',
-                        default=[40, 60, 80, 100, 
-                                 125, 150, 175, 200])
+                        default=1e-3)    
     parser.add_argument('--decay_rate',
                         type=float,
-                        default=0.50)
+                        default=0.98)
     parser.add_argument('--bias_sd',
                         type=bool,
                         default=False)
