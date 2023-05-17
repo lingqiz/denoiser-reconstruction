@@ -17,7 +17,7 @@ echo Training on CelebA
 python3 main.py --mode train --batch_size 64 --n_epoch 512 --ddp True --bias_sd True --scale_image Flase --save_path ./assets/conv3_celeba_tiny.pt --data_path npy_celeba_tiny
 
 echo Training on CIFAR
-python3 main.py --mode train --batch_size 64 --n_epoch 512 --ddp True --bias_sd True --scale_image Flase --save_path ./assets/conv3_cifar_cars.pt --data_path npy_cifar_cars
+python3 main.py --mode train --batch_size 64 --n_epoch 512 --ddp True --bias_sd True --scale_image Flase --save_path ./assets/conv3_cifar_10.pt --data_path npy_cifar_10
 
 echo Training on Pink Noise
 python3 main.py --mode train --batch_size 64 --n_epoch 512 --ddp True --bias_sd True --scale_image Flase --save_path ./assets/conv3_pink_noise.pt --data_path npy_pink_noise
