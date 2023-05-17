@@ -4,7 +4,7 @@
 #SBATCH -p gpu
 #SBATCH --gpus=4
 #SBATCH --constraint=a100
-#SBATCH --mem=256G
+#SBATCH --mem=768G
 #SBATCH -c 48
 #SBATCH -t 7-00:00:00
 
