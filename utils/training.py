@@ -1,7 +1,7 @@
 import torch, torch.nn as nn, time, datetime, random, math
 import torch.distributed as dist
 from models.denoiser import Denoiser
-from torch.optim import Adam
+from torch.optim import Adam, AdamW
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.utils.data import DataLoader
 from torch.cuda.amp import autocast, GradScaler
@@ -25,7 +25,11 @@ def sample_noise(size, noise_level, biased=False):
 
 def train_run(model, train_set, test_set, sampler, rank, args):
     # setup for training
-    optimizer = Adam(model.parameters(), lr=args.lr)
+    if args.weight_decay:
+        optimizer = AdamW(model.parameters(), lr=args.lr)
+    else:
+        optimizer = Adam(model.parameters(), lr=args.lr)
+        
     scheduler = ExponentialLR(optimizer, gamma=args.decay_rate)
     criterion = nn.MSELoss()
     scaler = GradScaler()

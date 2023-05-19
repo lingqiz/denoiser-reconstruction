@@ -43,6 +43,9 @@ def args():
     parser.add_argument('--scale_image',
                         type=bool,
                         default=False)
+    parser.add_argument('--weight_decay',
+                        type=bool,
+                        default=True)
     parser.add_argument('--ddp',
                         type=bool,
                         default=False,
