@@ -33,7 +33,7 @@ def train_run(model, train_set, test_set, sampler, rank, args):
         optimizer = SGD(model.parameters(), lr=args.lr, momentum=0.90)
     elif args.optim_option == 2:
         # Adam with weight decay
-        optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=1e-2)
+        optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=0.1)
     else:
         # invalid option
         optimizer = None        
