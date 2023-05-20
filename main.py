@@ -43,7 +43,7 @@ def args():
     parser.add_argument('--scale_image',
                         type=bool,
                         default=False)
-    parser.add_argument('--optim_option',
+    parser.add_argument('--opt_index',
                         type=int,
                         default=0)
     parser.add_argument('--ddp',

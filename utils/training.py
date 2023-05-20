@@ -25,13 +25,13 @@ def sample_noise(size, noise_level, biased=False):
 
 def train_run(model, train_set, test_set, sampler, rank, args):
     # setup for training
-    if args.optim_option == 0:
+    if args.opt_index == 0:
         # Adam optimizer
         optimizer = Adam(model.parameters(), lr=args.lr)
-    elif args.optim_option == 1:
+    elif args.opt_index == 1:
         # SGD with momentum
         optimizer = SGD(model.parameters(), lr=args.lr, momentum=0.90)
-    elif args.optim_option == 2:
+    elif args.opt_index == 2:
         # Adam with weight decay
         optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=0.1)
     else:
