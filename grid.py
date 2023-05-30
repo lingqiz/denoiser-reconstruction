@@ -9,19 +9,19 @@ import torch, os, torch.multiprocessing as mp
 # argument parsing
 args = parse_args()
 
-# load dataset
-print('start loading training data')
-
-dataset = DataSet.load_dataset(args)
-train_set = torch.from_numpy(dataset.train_set())
-test_set  = torch.from_numpy(dataset.test_set())
-
-print('dataset loaded, size %d' % train_set.size()[0])
-
 # grid search over parameters
 # train with DDP and Multi-GPUs
 def run_search(args):
     if args.ddp:
+        # load dataset
+        print('start loading training data')
+
+        dataset = DataSet.load_dataset(args)
+        train_set = torch.from_numpy(dataset.train_set())
+        test_set  = torch.from_numpy(dataset.test_set())
+
+        print('dataset loaded, size %d' % train_set.size()[0])
+
         # move dataset to shared memory
         train_set.share_memory_()
         test_set.share_memory_()
@@ -46,7 +46,7 @@ def run_search(args):
                 # run network training
                 args.seed = randint(0, 65535)
                 group = mp.spawn(train_parallel, nprocs=world_size,
-                        args=(world_size, train_set, test_set, args))
+                        args=(world_size, train_set, test_set, args))                
                 group.join()
                 
 if __name__ == '__main__':
