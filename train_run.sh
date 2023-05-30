@@ -14,7 +14,7 @@ module load python/3.10.8
 source recon/bin/activate
 
 # batch size = 32
-# of epoch = 384
+# of epoch = 352
 # AdamW (with weight decay)
 
 echo Training on CelebA
