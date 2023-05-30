@@ -28,17 +28,21 @@ def train_run(model, train_set, test_set, sampler, rank, args):
     if args.opt_index == 0:
         # Adam optimizer
         optimizer = Adam(model.parameters(), lr=args.lr)
+        
     elif args.opt_index == 1:
         # SGD with momentum
-        optimizer = SGD(model.parameters(), lr=args.lr, momentum=0.90)
+        optimizer = SGD(model.parameters(), lr=args.lr, 
+                        momentum=0.90)
+        
     elif args.opt_index == 2:
         # Adam with weight decay
-        optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=0.1)
+        optimizer = AdamW(model.parameters(), lr=args.lr, 
+                          weight_decay=args.decay_adam)
     else:
         # invalid option
         optimizer = None        
         
-    scheduler = ExponentialLR(optimizer, gamma=args.decay_rate)
+    scheduler = ExponentialLR(optimizer, gamma=args.decay_lr)
     criterion = nn.MSELoss()
     scaler = GradScaler()
 
@@ -105,6 +109,9 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             print('time elapsed: %s' % str(datetime.timedelta(
                 seconds=time.time() - start_time))[:-4])
 
+    # return test performance     
+    return psnr[0], psnr[1]
+
 def train_denoiser(train_set, test_set, model, args):
     # training with GPU if available
     rank = (0 if torch.cuda.is_available() else 'cpu')
@@ -133,11 +140,19 @@ def train_parallel(rank, world_size, train_set, test_set, args):
     train_set = DataLoader(train_set, batch_size=args.batch_size, drop_last=True,
                 shuffle=False, num_workers=4, pin_memory=True, sampler=data_sampler)
 
-    train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
-
-    # save the parameters of the model
+    psnr = train_run(model, train_set, test_set, sampler=True, rank=rank, args=args)
+    
     if rank == 0:
-        print('save model parameters')
-        torch.save(model.module.state_dict(), args.save_path)
+        # save the parameters of the model
+        if args.save_model:
+            print('save model parameters')
+            torch.save(model.module.state_dict(), args.save_path)
+            
+        # write test performance to file
+        else:
+            with open('grid_search.log', 'a') as fl:
+                 text = 'test psnr in %.2f, out %.2f \n' % (psnr[0], psnr[1])
+                 fl.write(text)
 
+    # end process group
     dist.destroy_process_group()

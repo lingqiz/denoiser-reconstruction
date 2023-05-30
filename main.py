@@ -2,96 +2,11 @@ from random import randint
 from models.denoiser import Denoiser
 from utils.training import train_denoiser, train_parallel
 from utils.dataset import DataSet, test_model
-import argparse, torch, os, torch.multiprocessing as mp
+from utils.helper import parse_args
+import torch, os, torch.multiprocessing as mp
 
 # run argument parser
-def args():
-    parser = argparse.ArgumentParser(description='Denoiser Training')
-
-    # option/mode for the script
-    parser.add_argument('-f',
-                        required=False,
-                        type=str,
-                        help='jupyter notebook')
-    parser.add_argument('--mode',
-                        required=False,
-                        type=str,
-                        help='script mode')
-    parser.add_argument('--model_path',
-                        type=str,
-                        default='./assets/conv3_ln.pt')
-
-    # arguments for network training
-    parser.add_argument('--batch_size',
-                        type=int, default=128,
-                        help='input batch size for training')
-    parser.add_argument('--n_epoch',
-                        type=int,
-                        default=100,
-                        help='number of epochs to train')
-    parser.add_argument('--noise_level',
-                        default=[0, 200])
-    parser.add_argument('--lr',
-                        type=float,
-                        default=1e-3)    
-    parser.add_argument('--decay_rate',
-                        type=float,
-                        default=0.98)
-    parser.add_argument('--bias_sd',
-                        type=bool,
-                        default=False)
-    parser.add_argument('--scale_image',
-                        type=bool,
-                        default=False)
-    parser.add_argument('--opt_index',
-                        type=int,
-                        default=0)
-    parser.add_argument('--ddp',
-                        type=bool,
-                        default=False,
-                        help='Distributed Data Parallel')
-    parser.add_argument('--save_path',
-                        type=str,
-                        default='./assets/model_para.pt')
-
-    # see dataset.py for parameters for individual dataset
-    parser.add_argument('--data_path',
-                        type=str,
-                        default='islvrc')
-    parser.add_argument('--linear',
-                        type=bool,
-                        default=True)
-    parser.add_argument('--patch_size',
-                        default=None)
-    parser.add_argument('--test_size',
-                        default=None)
-    parser.add_argument('--scales',
-                        default=None)
-    parser.add_argument('--test_scale',
-                        default=None)
-
-    # network architecture
-    parser.add_argument('--padding',
-                        type=int,
-                        default=1)
-    parser.add_argument('--kernel_size',
-                        type=int,
-                        default=3)
-    parser.add_argument('--num_kernels',
-                        type=int,
-                        default=64)
-    parser.add_argument('--num_layers',
-                        type=int,
-                        default=20)
-    parser.add_argument('--im_channels',
-                        type=int,
-                        default=3)
-
-    # parse arguments and check
-    args, _ = parser.parse_known_args()
-    return args
-
-args = args()
+args = parse_args()
 
 def train(args):
     # load dataset
