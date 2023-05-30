@@ -1,9 +1,8 @@
 # grid search on optimization hyper-parameters
 
 from random import randint
-from models.denoiser import Denoiser
-from utils.training import train_denoiser, train_parallel
-from utils.dataset import DataSet, test_model
+from utils.training import train_parallel
+from utils.dataset import DataSet
 from utils.helper import parse_args
 import torch, os, torch.multiprocessing as mp
 
@@ -46,8 +45,9 @@ def run_search(args):
         
                 # run network training
                 args.seed = randint(0, 65535)
-                mp.spawn(train_parallel, nprocs=world_size,
-                args=(world_size, train_set, test_set, args))
+                group = mp.spawn(train_parallel, nprocs=world_size,
+                        args=(world_size, train_set, test_set, args))
+                group.join()
                 
 if __name__ == '__main__':
     # run grid search
