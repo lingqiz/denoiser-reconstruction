@@ -72,6 +72,9 @@ def test(args):
     return (input_psnr, output_psnr)
 
 if __name__ == '__main__':
+    # only be executed when the script is run directly,
+    # and not when it is imported as a module
+    # used here together with the multiprocessing module
     print('configuration: \n', args)
 
     if args.mode == 'train':
