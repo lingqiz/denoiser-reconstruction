@@ -7,7 +7,6 @@ import torch, os, torch.multiprocessing as mp
 
 # run argument parser
 args = parse_args()
-print(args)
 
 def train(args):
     # load dataset
@@ -73,6 +72,8 @@ def test(args):
     return (input_psnr, output_psnr)
 
 if __name__ == '__main__':
+    print('configuration: \n', args)
+
     if args.mode == 'train':
         train(args)
 
