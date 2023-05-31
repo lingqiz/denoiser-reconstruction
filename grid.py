@@ -35,20 +35,19 @@ def run_search(args):
         # list of learning rate and decay rate
         all_lrs = [1e-3, 1e-2, 1e-1]
         all_decay = [1e-2, 0.1, 1.0]
-        
+
         # iterate through
         for idx in range(len(all_lrs)):
-            for idy in range(len(all_decay)):            
+            for idy in range(len(all_decay)):
                 # set parameter values
                 args.lr = all_lrs[idx]
                 args.decay_adam = all_decay[idy]
-        
+
                 # run network training
                 args.seed = randint(0, 65535)
-                group = mp.spawn(train_parallel, nprocs=world_size,
-                        args=(world_size, train_set, test_set, args))                
-                group.join()
-                
+                mp.spawn(train_parallel, nprocs=world_size,
+                         args=(world_size, train_set, test_set, args))
+
 if __name__ == '__main__':
     # run grid search
     run_search(args)
