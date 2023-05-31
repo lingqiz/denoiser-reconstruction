@@ -8,46 +8,47 @@ import torch, os, torch.multiprocessing as mp
 
 # argument parsing
 args = parse_args()
-print(args)
 
 # grid search over parameters
 # train with DDP and Multi-GPUs
 def run_search(args):
-    if args.ddp:
-        # load dataset
-        print('start loading training data')
+    # print arg values
+    print('training configuration: \n', args)
 
-        dataset = DataSet.load_dataset(args)
-        train_set = torch.from_numpy(dataset.train_set())
-        test_set  = torch.from_numpy(dataset.test_set())
+    # load dataset
+    print('start loading training data')
 
-        print('dataset loaded, size %d' % train_set.size()[0])
+    dataset = DataSet.load_dataset(args)
+    train_set = torch.from_numpy(dataset.train_set())
+    test_set  = torch.from_numpy(dataset.test_set())
 
-        # move dataset to shared memory
-        train_set.share_memory_()
-        test_set.share_memory_()
+    print('dataset loaded, size %d' % train_set.size()[0])
 
-        world_size = torch.cuda.device_count()
-        print('model training with %d GPUs' % world_size)
+    # move dataset to shared memory
+    train_set.share_memory_()
+    test_set.share_memory_()
 
-        os.environ['MASTER_ADDR'] = 'localhost'
-        os.environ['MASTER_PORT'] = '12355'
+    world_size = torch.cuda.device_count()
+    print('model training with %d GPUs' % world_size)
 
-        # list of learning rate and decay rate
-        all_lrs = [1e-3, 1e-2, 1e-1]
-        all_decay = [1e-2, 0.1, 1.0]
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
 
-        # iterate through
-        for idx in range(len(all_lrs)):
-            for idy in range(len(all_decay)):
-                # set parameter values
-                args.lr = all_lrs[idx]
-                args.decay_adam = all_decay[idy]
+    # list of learning rate and decay rate
+    all_lrs = [1e-3, 1e-2, 1e-1]
+    all_decay = [1e-2, 0.1, 1.0]
 
-                # run network training
-                args.seed = randint(0, 65535)
-                mp.spawn(train_parallel, nprocs=world_size,
-                         args=(world_size, train_set, test_set, args))
+    # iterate through
+    for idx in range(len(all_lrs)):
+        for idy in range(len(all_decay)):
+            # set parameter values
+            args.lr = all_lrs[idx]
+            args.decay_adam = all_decay[idy]
+
+            # run network training
+            args.seed = randint(0, 65535)
+            mp.spawn(train_parallel, nprocs=world_size,
+                        args=(world_size, train_set, test_set, args))
 
 if __name__ == '__main__':
     # run grid search
