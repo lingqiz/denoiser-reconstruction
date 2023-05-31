@@ -109,8 +109,9 @@ def train_run(model, train_set, test_set, sampler, rank, args):
             print('time elapsed: %s' % str(datetime.timedelta(
                 seconds=time.time() - start_time))[:-4])
 
-    # return test performance     
-    return psnr[0], psnr[1]
+    # return test performance from the main thread
+    if rank == 0 or rank == 'cpu':
+        return psnr[0], psnr[1]        
 
 def train_denoiser(train_set, test_set, model, args):
     # training with GPU if available
