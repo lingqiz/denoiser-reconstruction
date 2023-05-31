@@ -8,6 +8,7 @@ import torch, os, torch.multiprocessing as mp
 
 # argument parsing
 args = parse_args()
+print(args)
 
 # grid search over parameters
 # train with DDP and Multi-GPUs

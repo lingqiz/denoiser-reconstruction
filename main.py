@@ -7,6 +7,7 @@ import torch, os, torch.multiprocessing as mp
 
 # run argument parser
 args = parse_args()
+print(args)
 
 def train(args):
     # load dataset

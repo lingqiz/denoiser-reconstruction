@@ -33,13 +33,13 @@ def parse_args():
                         default=[0, 200])
     parser.add_argument('--lr',
                         type=float,
-                        default=1e-3)    
+                        default=1e-3)
     parser.add_argument('--decay_lr',
                         type=float,
                         default=0.98)
     parser.add_argument('--decay_adam',
                         type=float,
-                        default=0.1)    
+                        default=0.1)
     parser.add_argument('--bias_sd',
                         type=bool,
                         default=False)
@@ -91,7 +91,7 @@ def parse_args():
                         default=3)
     parser.add_argument('--save_model',
                         type=bool,
-                        default=True)
+                        default=False)
 
     # parse arguments and check
     args, _ = parser.parse_known_args()
