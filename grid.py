@@ -35,8 +35,8 @@ def run_search(args):
     os.environ['MASTER_PORT'] = '12355'
 
     # list of learning rate and decay rate
-    all_lrs = [1e-3, 1e-2, 1e-1]
-    all_decay = [1e-2, 0.1, 1.0]
+    all_lrs = [2e-4, 5e-4, 2.5e-3]
+    all_decay = [0.01, 0.05, 0.1]
 
     # iterate through
     for idx in range(len(all_lrs)):
