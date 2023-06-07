@@ -148,7 +148,8 @@ def plot_sample(model, beta, im_size, n_sample=25, mu=0.25,
     samples = []
     for idx in tqdm(range(n_sample)):
         init = mu + torch.randn(size=im_size)
-        samples.append(sample_prior(model, init, beta=beta, stride=0)[-1])
+        samples.append(sample_prior(model, init, h_init=h_init, 
+                        beta=beta, stride=0, fix_h=fix_h)[-1])
 
     edge = int(np.ceil(np.sqrt(n_sample)))
     fig, axs = plt.subplots(edge, edge, figsize=(12, 12), sharex=True, sharey=True)
