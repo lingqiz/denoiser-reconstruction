@@ -143,7 +143,8 @@ def eval_denoiser(test, model, device='cpu'):
     return (psnr_in, psnr_out, sd_true, sd_est)
 
 # sample from a prior
-def plot_sample(model, beta, im_size, n_sample=25, mu=0.25, gamma=True):
+def plot_sample(model, beta, im_size, n_sample=25, mu=0.25, 
+                gamma=True, h_init=0.01, fix_h=False):
     samples = []
     for idx in tqdm(range(n_sample)):
         init = mu + torch.randn(size=im_size)
