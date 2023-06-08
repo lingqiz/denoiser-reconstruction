@@ -6,7 +6,6 @@ from utils.dataset import DataSet
 from models.denoiser import Denoiser
 from inverse.lnopt import run_optim, gnl_pca
 
-# run argument parser
 def args():
     parser = argparse.ArgumentParser(description='Denoiser Training')
 
@@ -18,28 +17,25 @@ def args():
     parser.add_argument('--mode',
                         required=False,
                         type=str,
-                        help='script mode')
-    parser.add_argument('--model_path',
-                        type=str,
-                        default='./assets/conv3_ln.pt')
+                        help='script mode')    
     parser.add_argument('--pbar',
                         type=bool,
                         default=False)
 
     # arguments for optmization
     parser.add_argument('--batch_size',
-                        type=int, default=192,
+                        type=int, default=256,
                         help='input batch size for training')
     parser.add_argument('--n_epoch',
                         type=int,
-                        default=75,
+                        default=32,
                         help='number of epochs to train')
     parser.add_argument('--lr',
                         type=float,
-                        default=5e-4)
+                        default=1e-3)
     parser.add_argument('--decay_rate',
                         type=float,
-                        default=0.925)
+                        default=0.90)
     parser.add_argument('--loss_type',
                         type=str,
                         default='MSE')
@@ -51,23 +47,12 @@ def args():
                         default='denoiser')
 
     # see dataset.py for parameters for individual dataset
-    parser.add_argument('--dataset',
-                        type=str,
-                        default='islvrc48')
     parser.add_argument('--data_path',
                         type=str,
-                        default='islvrc')
-    parser.add_argument('--linear',
-                        type=bool,
-                        default=True)
-    parser.add_argument('--patch_size',
-                        default=(48, 48))
-    parser.add_argument('--test_size',
-                        default=(48, 48))
-    parser.add_argument('--scales',
-                        default=[0.40, 0.20, 0.125])
-    parser.add_argument('--test_scale',
-                        default=[0.40, 0.20, 0.125])
+                        default='npy_celeba_tiny')
+    parser.add_argument('--model_path',
+                        type=str,
+                        default='celeba_tiny')
 
     # network architecture
     parser.add_argument('--padding',
@@ -90,20 +75,9 @@ def args():
     args, _ = parser.parse_known_args()
     return args
 
+# setup model path to denoiser
 args = args()
-dict_args = vars(args)
-
-# load dataset settings
-keys = ['data_path', 'patch_size', 'test_size', 'scales',
-        'test_scale', 'model_path', 'padding', 'kernel_size']
-
-with open("data_config.json", "r") as fl:
-    data = json.load(fl)
-    arg_vals = data[args.dataset]
-
-    # set up parameters for loading the dataset
-    for idx in range(len(keys)):
-        dict_args[keys[idx]] = arg_vals[idx]
+args.model_path = './assets/conv3_' + args.model_path + '.pt'
 
 # list all arguments and values
 config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
