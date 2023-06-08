@@ -39,7 +39,7 @@ def parse_args():
                         default=0.98)
     parser.add_argument('--decay_adam',
                         type=float,
-                        default=0.08)
+                        default=0.09)
     parser.add_argument('--bias_sd',
                         type=bool,
                         default=False)
