@@ -16,7 +16,7 @@ def args():
     parser.add_argument('--mode',
                         required=False,
                         type=str,
-                        help='script mode')    
+                        help='script mode')
     parser.add_argument('--pbar',
                         type=bool,
                         default=False)
@@ -31,10 +31,10 @@ def args():
                         help='number of epochs to train')
     parser.add_argument('--lr',
                         type=float,
-                        default=5e-4)
+                        default=1e-4)
     parser.add_argument('--decay_rate',
                         type=float,
-                        default=0.90)
+                        default=0.925)
     parser.add_argument('--loss_type',
                         type=str,
                         default='MSE')
