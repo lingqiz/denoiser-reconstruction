@@ -4,8 +4,8 @@
 #SBATCH -p gpu
 #SBATCH --gpus=4
 #SBATCH --constraint=a100
-#SBATCH -c 32
-#SBATCH -t 10-00:00:00
+#SBATCH -c 48
+#SBATCH -t 7-00:00:00
 
 cd ~/denoiser_recon/
 module load cuda
