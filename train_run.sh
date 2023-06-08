@@ -17,7 +17,7 @@ source recon/bin/activate
 # AdamW (with weight decay)
 
 echo Training on CelebA
-python3 main.py --mode train --batch_size 32 --opt_index 2 --n_epoch 360 --save_path ./assets/conv3_celeba_tiny.pt --data_path npy_celeba_tiny --ddp True --bias_sd True --scale_image True --save_model True
+python3 main.py --mode train --batch_size 32 --opt_index 2 --n_epoch 368 --save_path ./assets/conv3_celeba_tiny.pt --data_path npy_celeba_tiny --ddp True --bias_sd True --scale_image True --save_model True
 
 echo Training on CIFAR
 python3 main.py --mode train --batch_size 32 --opt_index 2 --n_epoch 512 --save_path ./assets/conv3_cifar_10.pt --data_path npy_cifar_10 --ddp True --bias_sd True --scale_image True --save_model True
