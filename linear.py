@@ -1,7 +1,6 @@
 import argparse
 import torch
 import numpy as np
-import json
 from utils.dataset import DataSet
 from models.denoiser import Denoiser
 from inverse.lnopt import run_optim, gnl_pca
