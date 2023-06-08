@@ -31,7 +31,7 @@ def args():
                         help='number of epochs to train')
     parser.add_argument('--lr',
                         type=float,
-                        default=1e-3)
+                        default=5e-4)
     parser.add_argument('--decay_rate',
                         type=float,
                         default=0.90)
