@@ -93,7 +93,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
 
 # setup save name
-save_name = args.data_path + str(args.patch_size[0])
+save_name = args.data_path
 paras = [args.n_sample, args.loss_type, args.batch_size,
             args.n_epoch, args.lr, args.decay_rate, args.pbar]
 
