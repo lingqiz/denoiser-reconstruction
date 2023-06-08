@@ -16,7 +16,7 @@ DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MSE = nn.MSELoss(reduction='sum').to(DEVICE)
 SSIM = MetricSSIM(data_range=1.0, sigma=1.0).to(DEVICE)
 MS_SSIM = MetricMS_SSIM(data_range=1.0, kernel_size=5, sigma=1.0,
-                        betas=(0.347, 0.366, 0.287)).to(DEVICE)
+                        betas=(0.487, 0.513)).to(DEVICE)
 
 def pca_projection(train_set, test_torch, n_sample, im_size):
     # Compute PCA on the training set
