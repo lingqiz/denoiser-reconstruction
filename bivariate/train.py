@@ -64,7 +64,7 @@ def train_simple(train_set, test_set, model, args):
         # performance on test set
         model.eval()
 
-        test_noise = test_set + torch.normal(0, 2, size=test_set.size())
+        test_noise = test_set + torch.normal(0, 0.5, size=test_set.size())
         with torch.no_grad():
             residual = model(test_noise.to(rank))
             test_denoise = test_noise - residual.cpu()
