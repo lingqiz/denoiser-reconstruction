@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.stats import gennorm
 
 # Define bivariate distributions
 
@@ -36,3 +37,14 @@ def ridge(range=[-1, 1], theta=0, n=1):
 
     rot_mtx = rotation(theta)
     return (rot_mtx @ sample.T).T
+
+'''
+Independent sparse marginals
+'''
+def sparse(shape=1, theta=0, n=1):
+    # generlized normal density
+    x = gennorm.rvs(shape, size=n)
+    y = gennorm.rvs(shape, size=n)
+    sample = np.array([x, y]).T
+
+    return (rotation(theta) @ sample.T).T
