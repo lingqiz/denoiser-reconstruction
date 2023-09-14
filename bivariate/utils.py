@@ -9,11 +9,12 @@ from dataclasses import dataclass
 @dataclass
 class Args:
     train_noise: list
-    test_noise: int
+    test_noise: int = 128
     n_epoch: int = 50
     batch_size: int = 256
-    lr: float = 0.01
+    lr: float = 0.05
     decay_lr: float = 0.99
+    verbose: bool = False
 
 def sample_noise(size, noise_level):
     noise = torch.empty(size=size)
@@ -43,6 +44,8 @@ def train_simple(train_set, test_set, model, args):
     criterion = nn.MSELoss()
 
     # run training
+    epoch_loss = []
+    test_loss = []
     for epoch in range(args.n_epoch):
         model.train()
         total_loss = 0.0
@@ -78,6 +81,12 @@ def train_simple(train_set, test_set, model, args):
             test_out = criterion(test_set, test_denoise)
 
         # print some diagnostic information
-        print('epoch %d/%d' % (epoch + 1, args.n_epoch))
-        print('average loss %.4f' % (total_loss / float(count + 1)))
-        print('test in %.4f, out %.4f' % (test_in, test_out))
+        epoch_loss.append(total_loss / float(count + 1))
+        test_loss.append(test_out)
+
+        if args.verbose:
+            print('epoch %d/%d' % (epoch + 1, args.n_epoch))
+            print('average loss %.4f' % (total_loss / float(count + 1)))
+            print('test in %.4f, out %.4f' % (test_in, test_out))
+
+        return epoch_loss, test_loss
