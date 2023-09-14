@@ -1,5 +1,7 @@
-import torch, time, random
+import torch, random
 import torch.nn as nn
+import numpy as np
+import matplotlib.pyplot as plt
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ExponentialLR
 from torch.optim import SGD
@@ -89,4 +91,25 @@ def train_simple(train_set, test_set, model, args):
             print('average loss %.4f' % (total_loss / float(count + 1)))
             print('test in %.4f, out %.4f' % (test_in, test_out))
 
-        return epoch_loss, test_loss
+    return epoch_loss, test_loss
+
+def quiver_plot(x, y, model, device):
+    # define the mesh grid for the vector field
+    X, Y = np.meshgrid(x, y)
+    XY = np.concatenate([X.reshape(-1, 1), Y.reshape(-1, 1)], axis=1)
+
+    # compute the vector field (log prior gradient)
+    XY_tr = torch.from_numpy(XY).float()
+    with torch.no_grad():
+        UV = - model(XY_tr.to(device)).detach().cpu().numpy()
+
+    U = UV[:, 0].reshape(X.shape)
+    V = UV[:, 1].reshape(Y.shape)
+
+    # generate the quiver plot
+    plt.figure(figsize=(8, 8))
+    plt.quiver(X, Y, U, V, scale=20)
+    plt.xlabel('x axis')
+    plt.ylabel('y axis')
+    plt.axis('equal')
+    plt.show()
