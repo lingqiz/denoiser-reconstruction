@@ -41,10 +41,10 @@ def ridge(range=[-1, 1], theta=0, n=1):
 '''
 Independent sparse marginals
 '''
-def sparse(shape=1, theta=0, n=1):
+def sparse(shape=1, scale=1, theta=0, n=1):
     # generlized normal density
     x = gennorm.rvs(shape, size=n)
     y = gennorm.rvs(shape, size=n)
-    sample = np.array([x, y]).T
+    sample = np.array([x, y]).T * scale
 
     return (rotation(theta) @ sample.T).T
