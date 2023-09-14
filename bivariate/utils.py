@@ -93,7 +93,7 @@ def train_simple(train_set, test_set, model, args):
 
     return epoch_loss, test_loss
 
-def quiver_plot(x, y, model, device, new_fig=True):
+def quiver_plot(x, y, model, device, new_fig=True, scale=10):
     # define the mesh grid for the vector field
     X, Y = np.meshgrid(x, y)
     XY = np.concatenate([X.reshape(-1, 1), Y.reshape(-1, 1)], axis=1)
@@ -110,7 +110,7 @@ def quiver_plot(x, y, model, device, new_fig=True):
     if new_fig:
         plt.figure(figsize=(8, 8))
 
-    plt.quiver(X, Y, U, V, scale=20)
+    plt.quiver(X, Y, U, V, scale=scale)
     plt.xlabel('x-axis')
     plt.ylabel('y-axis')
     plt.axis('equal')

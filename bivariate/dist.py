@@ -48,3 +48,29 @@ def sparse(shape=1, scale=1, theta=0, n=1):
     sample = np.array([x, y]).T * scale
 
     return (rotation(theta) @ sample.T).T
+
+'''
+K-sparse density
+Compressed sensing
+Weiss et al., 2008
+'''
+def k_sparse(n=1):
+    TOTAL = 3
+    P_HORI = 2 / TOTAL
+    P_VERT = 1 / TOTAL
+
+    sample = []
+    for _ in range(n):
+        if np.random.uniform() < P_HORI:
+            x = np.random.uniform(-1, 1)
+            y = np.random.normal(0, 0.01)
+
+        else:
+            x = np.random.normal(0, 0.01)
+            y = np.random.uniform(0.5, 1.0)
+            if np.random.uniform() >= 0.5:
+                y = -y
+
+        sample.append([x, y])
+
+    return np.array(sample)
