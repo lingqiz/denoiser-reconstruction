@@ -109,7 +109,7 @@ def quiver_plot(x, y, model, device):
     # generate the quiver plot
     plt.figure(figsize=(8, 8))
     plt.quiver(X, Y, U, V, scale=20)
-    plt.xlabel('x axis')
-    plt.ylabel('y axis')
+    plt.xlabel('x-axis')
+    plt.ylabel('y-axis')
     plt.axis('equal')
     plt.show()
