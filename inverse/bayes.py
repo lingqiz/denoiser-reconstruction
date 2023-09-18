@@ -84,8 +84,8 @@ class BayesEstimator(ABC):
         '''
         return self.neg_llhd(msmt, image) + self.lbda * self.conv_prior(image)
 
-    def recon(self, msmt, im_size, n_iter=2001,
-              lr=1e-1, step=400, print_loss=True):
+    def recon(self, msmt, im_size, n_iter=2001, lr=1e-1,
+              step=400, print_loss=True, print_step=200):
         '''
         Reconstruct image(s) from measurements
             - msmt: (batch_size, n_measurements)
@@ -111,7 +111,7 @@ class BayesEstimator(ABC):
             with torch.no_grad():
                 init.clamp_(0, 1)
 
-            if iter % 200 == 0 and print_loss:
+            if iter % print_step == 0 and print_loss:
                 print('Iteration: {}, Objective: {}'.format(iter, obj.sum()))
 
         return init.detach(), np.array(loss)
