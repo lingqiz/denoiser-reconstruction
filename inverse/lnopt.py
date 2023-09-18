@@ -41,13 +41,13 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     recon_numpy = recon_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
     return mtx, mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def recon_avg(test_torch, solver, n_avg=5):
+def recon_avg(test_torch, solver, num_avg=4):
     with torch.no_grad():
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
-        for _ in range(n_avg):
+        for _ in range(num_avg):
             image_sum += solver(test_torch)
-        recon = image_sum / n_avg
+        recon = image_sum / num_avg
 
         # compute metric
         mse_val = MSE(test_torch, recon) / test_torch.shape[0]
@@ -60,8 +60,8 @@ def recon_avg(test_torch, solver, n_avg=5):
 
         return mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def ln_optim(solver, loss, train, test, batch_size=200,
-             n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False):
+def ln_optim(solver, loss, train, test, batch_size=200, n_epoch=50, 
+             lr=1e-3, gamma=0.95, num_avg=4, show_bar=False):
 
     # training data
     n_batch = np.ceil(train.shape[0] / batch_size)
@@ -85,9 +85,12 @@ def ln_optim(solver, loss, train, test, batch_size=200,
             optim.zero_grad(set_to_none=True)
             batch = batch.permute(0, 3, 1, 2).contiguous().to(DEVICE)
 
-            # run reconstruction
-            # using two sample average
-            recon = (solver(batch) + solver(batch)) / 2
+            # run reconstruction using sample average
+            image_sum = torch.zeros_like(batch)
+            for _ in range(num_avg):
+                image_sum += solver(batch)
+            
+            recon = image_sum / num_avg
             error = loss(recon, batch)
 
             # optim step
