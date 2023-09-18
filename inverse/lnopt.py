@@ -86,7 +86,8 @@ def ln_optim(solver, loss, train, test, batch_size=200,
             batch = batch.permute(0, 3, 1, 2).contiguous().to(DEVICE)
 
             # run reconstruction
-            recon = solver(batch)
+            # using two sample average
+            recon = (solver(batch) + solver(batch)) / 2
             error = loss(recon, batch)
 
             # optim step
