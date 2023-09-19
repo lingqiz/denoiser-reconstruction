@@ -54,10 +54,9 @@ K-sparse density
 Compressed sensing
 Weiss et al., 2008
 '''
-def k_sparse(n=1):
-    TOTAL = 3
+def k_sparse(n=1, length=0.5):
+    TOTAL = 2 + length * 2
     P_HORI = 2 / TOTAL
-    P_VERT = 1 / TOTAL
 
     sample = []
     for _ in range(n):
@@ -67,7 +66,7 @@ def k_sparse(n=1):
 
         else:
             x = np.random.normal(0, 0.01)
-            y = np.random.uniform(0.5, 1.0)
+            y = np.random.uniform(1 - length, 1.0)
             if np.random.uniform() >= 0.5:
                 y = -y
 
