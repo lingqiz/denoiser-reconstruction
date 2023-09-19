@@ -1,4 +1,4 @@
-import torch, random
+import torch, random, math
 import torch.nn as nn
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,17 +13,22 @@ class Args:
     train_noise: list
     test_noise: int = 128
     n_epoch: int = 50
-    batch_size: int = 256
+    batch_size: int = 128
     lr: float = 0.05
     decay_lr: float = 0.99
+    pow_noise: bool = True
     verbose: bool = False
 
-def sample_noise(size, noise_level):
+def sample_noise(size, noise_level, pow_noise):
     noise = torch.empty(size=size)
 
     for idx in range(int(size[0])):
         # determine noise S.D.
         noise_sd = random.randint(noise_level[0], noise_level[1]) / 255.0
+
+        # biased noise sample (towards smaller noise)
+        if pow_noise:
+            noise_sd = math.pow(noise_sd, 2)
 
         # sample Gaussian i.i.d. noise
         noise[idx] = torch.normal(mean=0.0, std=noise_sd, size=list(size[1:]))
@@ -57,7 +62,7 @@ def train_simple(train_set, test_set, model, args):
 
             # setup noise and input pair
             batch = batch.to(rank)
-            noise = sample_noise(batch.shape, args.train_noise).to(rank)
+            noise = sample_noise(batch.shape, args.train_noise, args.pow_noise).to(rank)
             noise_input = batch + noise
 
             # forward pass
