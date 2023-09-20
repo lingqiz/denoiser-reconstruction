@@ -3,6 +3,7 @@ import torch, numpy as np
 DIM = 2
 
 # sampling function for bivariate prior
+# 2-D special case for the algorithm in inverse/sampler.py
 def sample(model, device, h=0.1, beta=0.1, end=0.01):
     # setup initial values
     init = torch.rand(DIM) * 2 - 1
@@ -32,3 +33,6 @@ def sample(model, device, h=0.1, beta=0.1, end=0.01):
         all_y.append(y.detach().squeeze().cpu().numpy())
 
     return np.array(all_y)
+
+# linear inverse function for bivariate prior and 1-D projection
+# 2-D special case for the algorithm in inverse/orthogonal.py
