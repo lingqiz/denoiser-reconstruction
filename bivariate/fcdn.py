@@ -20,3 +20,7 @@ class Denoiser(nn.Module):
 
     def forward(self, x):
         return self.model(x)
+
+    def score(self, x):
+        with torch.no_grad():
+            return - self.model(x)
