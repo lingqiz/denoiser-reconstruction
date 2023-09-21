@@ -3,6 +3,8 @@ import torch, numpy as np
 import torch.nn as nn
 import torch.nn.utils.parametrizations as para
 from torch.linalg import vector_norm as vnorm
+from torch.utils.data import DataLoader
+from torch.optim.lr_scheduler import ExponentialLR
 N_DIM = 2
 
 # sampling function for bivariate prior
@@ -138,3 +140,60 @@ class LinearInverse(nn.Module):
 
         m = self.measure(x)
         return self.inverse(m)
+
+def lnopt(solver, train, test, device, batch_size=128,
+          n_epoch=50, lr=1e-3, gamma=0.95, verbose=True):
+
+    # training and test data
+    train_data = DataLoader(train, batch_size, shuffle=True,
+                            num_workers=8, pin_memory=True)
+    test = test.to(device)
+
+    # optimizers
+    loss = nn.MSELoss(reduction='sum')
+    optim = torch.optim.Adam(solver.parameters(), lr=lr)
+    scheduler = ExponentialLR(optim, gamma=gamma)
+
+    batch_loss = []
+    epoch_loss = []
+
+    # Run n_epoch of training
+    for epoch in range(n_epoch):
+        total_loss = 0.0
+
+        # SGD Optimization
+        for count, batch in enumerate(train_data):
+            optim.zero_grad(set_to_none=True)
+
+            batch = batch.to(device)
+            recon = solver(batch)
+            error = loss(recon, batch)
+
+            # optim step
+            error.backward()
+            optim.step()
+
+            # record loss value
+            loss_val = error.item() / batch.shape[0]
+            batch_loss.append(loss_val)
+            total_loss += loss_val
+
+        # average loss value per batch
+        avg_loss = total_loss / float(count)
+        epoch_loss.append(avg_loss)
+
+        # adjust learning rate
+        scheduler.step()
+
+        # compute performance on test set
+        with torch.no_grad():
+            recon_test = solver(test)
+            test_loss = loss(recon_test, test).item() / test.shape[0]
+
+        # print training information
+        if verbose:
+            print('Epoch %d/%d' % (epoch + 1, n_epoch))
+            print('Training loss %.3f' % (avg_loss))
+            print('Test loss %.3f \n' % test_loss)
+
+    return np.array(batch_loss), np.array(epoch_loss)
