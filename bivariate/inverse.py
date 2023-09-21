@@ -104,12 +104,12 @@ class LinearInverse(nn.Module):
         n = torch.numel(e[0])
         mu = 0.5 * (e - M_T(M(e))) + proj
         y = torch.randn_like(mu) + mu
-        sigma = vnorm(self.log_grad(y),
-                      dim=(1)) / np.sqrt(n)
+        scale = np.sqrt((1 - self.beta * self.h) ** 2 - (1 - self.h) ** 2)
+        sigma = vnorm(self.log_grad(y), dim=(1)) / np.sqrt(n)
 
         # corse-to-fine sampling
         t = 1
-        while torch.min(sigma) > self.end:
+        while torch.max(sigma) > self.end:
             # projected log prior gradient
             d = self.log_grad(y)
             d = (d - M_T(M(d)) + proj - M_T(M(y)))
@@ -119,7 +119,7 @@ class LinearInverse(nn.Module):
 
             # injected noise
             noise = torch.randn_like(y)
-            gamma = np.sqrt((1 - self.beta * self.h) ** 2 - (1 - self.h) ** 2) * sigma
+            gamma = scale * sigma
             # expand gamma for shape matching
             gamma = gamma[:, None].repeat([1, self.N_DIM])
 
@@ -132,3 +132,9 @@ class LinearInverse(nn.Module):
 
         # run a final denoise step and return the results
         return y + self.log_grad(y)
+
+    def forward(self, x):
+        self.refresh()
+
+        m = self.measure(x)
+        return self.inverse(m)

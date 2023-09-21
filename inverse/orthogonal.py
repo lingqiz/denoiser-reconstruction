@@ -96,11 +96,11 @@ class LinearInverse(nn.Module):
         """
         new_shape = [-1, self.im_size[0], self.im_size[2], self.im_size[1]]
         return torch.matmul(m, self.mtx).reshape(new_shape).transpose(2, 3)
-    
+
     def inverse(self, msmt):
         """
         msmt: measurements of images
-        
+
         Perform denoiser reconstruction on
         images based on linear measurements
         """
@@ -119,7 +119,7 @@ class LinearInverse(nn.Module):
 
         # start the iterative procedure
         t = 1
-        while torch.min(sigma) > self.sig_end:
+        while torch.max(sigma) > self.sig_end:
             # update step size
             h = self.h_init
             if self.h_increase:
@@ -149,7 +149,7 @@ class LinearInverse(nn.Module):
         self.last_t = t
 
         # run a final denoise step and return the results
-        return y + self.log_grad(y)  
+        return y + self.log_grad(y)
 
     def forward(self, x):
         """
@@ -161,10 +161,10 @@ class LinearInverse(nn.Module):
         # update the measurement matrix
         # based on the parameterization
         self.refresh()
-        
+
         # compute the linear measurement
         msmt = self.measure(x)
-        
+
         # run the reconstruction routine
         return self.inverse(msmt)
 
@@ -175,7 +175,7 @@ class LinearProjection(nn.Module):
 
     def __init__(self, n_sample, im_size):
         super().__init__()
-        
+
         self.im_size = im_size
         self.n_pixel = np.prod(im_size)
         self.n_sample = n_sample
