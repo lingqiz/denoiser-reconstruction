@@ -117,9 +117,10 @@ class LinearInverse(nn.Module):
         sigma = vnorm(self.log_grad(y),
                 dim=(1, 2, 3)) / np.sqrt(n)
 
-        # start the iterative procedure
+        # crose-to-fine reconstruction
         t = 1
-        while torch.max(sigma) > self.sig_end:
+        # stop criteria (mean) for batch input
+        while torch.mean(sigma) > self.sig_end:
             # update step size
             h = self.h_init
             if self.h_increase:
@@ -146,6 +147,7 @@ class LinearInverse(nn.Module):
             # (typically) use in conjection with grad=True
             if t > self.max_t:
                 break
+
         self.last_t = t
 
         # run a final denoise step and return the results
