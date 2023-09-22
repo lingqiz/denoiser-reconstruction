@@ -166,7 +166,7 @@ def lnopt(solver, train, test, device, batch_size=128,
             optim.zero_grad(set_to_none=True)
 
             batch = batch.to(device)
-            recon = solver(batch)
+            recon = (solver(batch) + solver(batch)) / 2
             error = loss(recon, batch)
 
             # optim step
@@ -187,7 +187,7 @@ def lnopt(solver, train, test, device, batch_size=128,
 
         # compute performance on test set
         with torch.no_grad():
-            recon_test = solver(test)
+            recon_test = (solver(test) + solver(test)) / 2
             test_loss = loss(recon_test, test).item() / test.shape[0]
 
         # print training information
