@@ -180,7 +180,7 @@ def lnopt(solver, train, test, device, batch_size=128,
             optim.zero_grad(set_to_none=True)
 
             batch = batch.to(device)
-            recon = (solver(batch) + solver(batch)) / 2
+            recon = solver.average(batch, sample=2)
             error = loss(recon, batch)
 
             # optim step
