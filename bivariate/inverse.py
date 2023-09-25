@@ -141,6 +141,20 @@ class LinearInverse(nn.Module):
         m = self.measure(x)
         return self.inverse(m)
 
+    # reconstruction using sample average
+    def average(self, x, sample=2):
+        # make copies of the input
+        x = x.repeat([sample, 1])
+
+        # run the inverse algorithm
+        recon = self.forward(x)
+
+        # average the results
+        recon = recon.reshape([sample, -1, self.N_DIM])
+        recon = torch.mean(recon, dim=0)
+
+        return recon
+
 def lnopt(solver, train, test, device, batch_size=128,
           n_epoch=50, lr=1e-3, gamma=0.95, verbose=True):
 
@@ -187,7 +201,7 @@ def lnopt(solver, train, test, device, batch_size=128,
 
         # compute performance on test set
         with torch.no_grad():
-            recon_test = (solver(test) + solver(test)) / 2
+            recon_test = solver.average(test, sample=2)
             test_loss = loss(recon_test, test).item() / test.shape[0]
 
         # print training information

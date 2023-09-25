@@ -23,18 +23,26 @@ def normal(mu, sigma, rho, n):
 '''
 Sum of two Gaussian ridges
 '''
-def ridge(range=[-1, 1], theta=0, n=1):
-    x = np.random.normal(0, 0.01, n)
-    y = np.random.uniform(range[0], range[1], n)
-    sample_1 = np.array([x, y]).T
+def ridge(range=[-1, 1], theta=0, n=1, balance=False):
+    if balance:
+        x = np.random.normal(0, 0.01, n)
+        y = np.linspace(range[0], range[1], n)
+        sample_1 = np.array([x, y]).T
+        sample_2 = np.array([y, x]).T
 
-    x = np.random.uniform(range[0], range[1], n)
-    y = np.random.normal(0, 0.01, n)
-    sample_2 = np.array([x, y]).T
+    else:
+        x = np.random.normal(0, 0.01, n)
+        y = np.random.uniform(range[0], range[1], n)
+        sample_1 = np.array([x, y]).T
+
+        x = np.random.uniform(range[0], range[1], n)
+        y = np.random.normal(0, 0.01, n)
+        sample_2 = np.array([x, y]).T
 
     sample = np.concatenate((sample_1, sample_2))
     np.random.shuffle(sample)
 
+    # rotate the samples
     rot_mtx = rotation(theta)
     return (rot_mtx @ sample.T).T
 
