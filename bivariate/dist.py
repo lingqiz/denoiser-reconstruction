@@ -27,12 +27,12 @@ def ridge(range=[-1, 1], theta=0, n=1, balance=False):
     if balance:
         x = np.random.normal(0, 0.01, n)
         y = np.linspace(range[0], range[1], n)
-        sample_1 = np.array([x, y]).T
+        sample_1 = np.array([x, y * 0.8]).T
         sample_2 = np.array([y, x]).T
 
     else:
         x = np.random.normal(0, 0.01, n)
-        y = np.random.uniform(range[0], range[1], n)
+        y = np.random.uniform(range[0], range[1], n) * 0.8
         sample_1 = np.array([x, y]).T
 
         x = np.random.uniform(range[0], range[1], n)
