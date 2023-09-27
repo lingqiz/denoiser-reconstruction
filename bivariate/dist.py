@@ -24,19 +24,19 @@ def normal(mu, sigma, rho, n):
 Sum of two Gaussian ridges
 '''
 def ridge(range=[-1, 1], theta=0, n=1, balance=False):
-    shrink = 0.75
+    shrink = 0.9
     if balance:
         x = np.random.normal(0, 0.01, n)
         y = np.linspace(range[0], range[1], n)
-        sample_1 = np.array([x, y * shrink]).T
-        sample_2 = np.array([y, x]).T
+        sample_1 = np.array([x, y]).T
+        sample_2 = np.array([y * shrink, x]).T
 
     else:
         x = np.random.normal(0, 0.01, n)
-        y = np.random.uniform(range[0], range[1], n) * shrink
+        y = np.random.uniform(range[0], range[1], n)
         sample_1 = np.array([x, y]).T
 
-        x = np.random.uniform(range[0], range[1], n)
+        x = np.random.uniform(range[0], range[1], n) * shrink
         y = np.random.normal(0, 0.01, n)
         sample_2 = np.array([x, y]).T
 
