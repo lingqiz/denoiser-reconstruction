@@ -24,7 +24,7 @@ def normal(mu, sigma, rho, n):
 Sum of two Gaussian ridges
 '''
 def ridge(range=[-1, 1], theta=0, n=1, balance=False):
-    shrink = 0.9
+    shrink = 0.75
     if balance:
         x = np.random.normal(0, 0.01, n)
         y = np.linspace(range[0], range[1], n)
