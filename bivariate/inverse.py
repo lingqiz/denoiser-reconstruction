@@ -69,7 +69,7 @@ class LinearInverse(nn.Module):
         # parameters for the reconstruction
         self.h = 0.20
         self.beta = 0.20
-        self.end = 0.01
+        self.end = 0.025
         self.max_t = 200
         self.last_t = None
 
@@ -95,7 +95,7 @@ class LinearInverse(nn.Module):
     def recon(self, m):
         return torch.matmul(m, self.vector)
 
-    def inverse(self, m, verbose=False):
+    def inverse(self, m):
         # measurement vector calculation
         M = self.measure
         M_T = self.recon
@@ -117,7 +117,7 @@ class LinearInverse(nn.Module):
 
             # compute noise magnitude for stopping criterion
             sigma = vnorm(d, dim=(1)) / np.sqrt(n)
-            if torch.max(sigma) > self.end:
+            if torch.max(sigma) <= self.end:
                 flag = False
 
             # injected noise
@@ -132,8 +132,6 @@ class LinearInverse(nn.Module):
 
         # save the number of steps
         self.last_t = t
-
-        # return the results
         return y
 
     def forward(self, x):
