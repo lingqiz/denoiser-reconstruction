@@ -18,9 +18,19 @@ class Denoiser(nn.Module):
             *inter,
             nn.Linear(n_node, 2, bias=bias))
 
+        # Initialize the weights
+        self._weight_init()
+
     def forward(self, x):
         return self.model(x)
 
     def score(self, x):
         with torch.no_grad():
             return - self.model(x)
+
+    def _weight_init(self):
+        def init_func(m):
+            if isinstance(m, nn.Linear):
+                torch.nn.init.xavier_normal_(m.weight)
+                m.bias.data.fill_(0.01)
+        self.apply(init_func)

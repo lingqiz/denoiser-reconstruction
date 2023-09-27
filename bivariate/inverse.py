@@ -102,10 +102,8 @@ class LinearInverse(nn.Module):
 
         # init variables
         proj = M_T(m)
-        e = torch.ones_like(proj)
-        n = torch.numel(e[0])
-        mu = 0.5 * (e - M_T(M(e))) + proj
-        y = torch.randn_like(mu) + mu
+        n = torch.numel(proj[0])
+        y = torch.randn_like(proj) + proj
         scale = np.sqrt((1 - self.beta * self.h) ** 2 - (1 - self.h) ** 2)
         sigma = vnorm(self.log_grad(y), dim=(1)) / np.sqrt(n)
 
