@@ -69,7 +69,7 @@ class LinearInverse(nn.Module):
         # parameters for the reconstruction
         self.h = 0.20
         self.beta = 0.20
-        self.end = 0.025
+        self.end = 0.020
         self.max_t = 200
         self.last_t = None
 
