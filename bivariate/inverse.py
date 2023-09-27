@@ -69,7 +69,7 @@ class LinearInverse(nn.Module):
         # parameters for the reconstruction
         self.h = 0.20
         self.beta = 0.20
-        self.end = 0.025
+        self.end = 0.01
         self.max_t = 200
         self.last_t = None
 
@@ -95,7 +95,7 @@ class LinearInverse(nn.Module):
     def recon(self, m):
         return torch.matmul(m, self.vector)
 
-    def inverse(self, m):
+    def inverse(self, m, verbose=False):
         # measurement vector calculation
         M = self.measure
         M_T = self.recon
@@ -104,18 +104,21 @@ class LinearInverse(nn.Module):
         proj = M_T(m)
         n = torch.numel(proj[0])
         y = torch.randn_like(proj) + proj
-        scale = np.sqrt((1 - self.beta * self.h) ** 2 - (1 - self.h) ** 2)
-        sigma = vnorm(self.log_grad(y), dim=(1)) / np.sqrt(n)
+        scale = np.sqrt((1 - self.beta * self.h) ** 2
+                        - (1 - self.h) ** 2)
 
         # corse-to-fine sampling
         t = 1
-        while torch.max(sigma) > self.end:
+        flag = True
+        while flag:
             # projected log prior gradient
             d = self.log_grad(y)
             d = (d - M_T(M(d)) + proj - M_T(M(y)))
 
-            # compute noise magnitude
+            # compute noise magnitude for stopping criterion
             sigma = vnorm(d, dim=(1)) / np.sqrt(n)
+            if torch.max(sigma) > self.end:
+                flag = False
 
             # injected noise
             noise = torch.randn_like(y)
@@ -130,8 +133,8 @@ class LinearInverse(nn.Module):
         # save the number of steps
         self.last_t = t
 
-        # run a final denoise step and return the results
-        return y + self.log_grad(y)
+        # return the results
+        return y
 
     def forward(self, x):
         self.refresh()
