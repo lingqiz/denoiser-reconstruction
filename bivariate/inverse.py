@@ -70,6 +70,7 @@ class LinearInverse(nn.Module):
         self.h = 0.20
         self.beta = 0.20
         self.end = 0.025
+        self.max_t = 1024
         self.last_t = None
 
     def refresh(self):
@@ -102,7 +103,7 @@ class LinearInverse(nn.Module):
         # init variables
         proj = M_T(m)
         n = torch.numel(proj[0])
-        y = torch.randn_like(proj) + proj
+        y = torch.randn_like(proj) * 0.10 + proj
         scale = np.sqrt((1 - self.beta * self.h) ** 2
                         - (1 - self.h) ** 2)
 
@@ -116,7 +117,7 @@ class LinearInverse(nn.Module):
 
             # compute noise magnitude for stopping criterion
             sigma = vnorm(d, dim=(1)) / np.sqrt(n)
-            if torch.max(sigma) <= self.end:
+            if torch.max(sigma) <= self.end or t > self.max_t:
                 flag = False
 
             # injected noise

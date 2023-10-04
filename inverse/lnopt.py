@@ -60,8 +60,8 @@ def recon_avg(test_torch, solver, num_avg=6):
 
         return mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def ln_optim(solver, loss, train, test, batch_size=200, n_epoch=50,
-             lr=1e-3, gamma=0.95, num_avg=2, show_bar=False):
+def ln_optim(solver, loss, train, test, batch_size=200,
+             n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False):
 
     # training data
     n_batch = np.ceil(train.shape[0] / batch_size)
@@ -86,7 +86,7 @@ def ln_optim(solver, loss, train, test, batch_size=200, n_epoch=50,
             batch = batch.permute(0, 3, 1, 2).contiguous().to(DEVICE)
 
             # run reconstruction using (two) sample average
-            recon = solver.average(batch, num_avg=num_avg)
+            recon = solver(batch)
             error = loss(recon, batch)
 
             # optim step
@@ -159,7 +159,8 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
 
     # wrap the model in DataParallel
     solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
-    solver.max_t = 60
+    solver.max_t = 100
+    solver.run_avg= True
     solver_gpu = torch.nn.DataParallel(solver)
 
     # test with PCA for baseline performance

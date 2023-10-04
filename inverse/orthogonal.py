@@ -57,6 +57,8 @@ class LinearInverse(nn.Module):
         self.sig_end = 0.01
         self.max_t = 100
         self.last_t = None
+        self.run_avg = False
+        self.num_avg = 2
 
     def refresh(self):
         self.mtx = self.linear.weight
@@ -153,7 +155,7 @@ class LinearInverse(nn.Module):
         # run a final denoise step and return the results
         return y + self.log_grad(y)
 
-    def forward(self, x):
+    def _run_recon(self, x):
         """
         x: images of size [N, C, W, H]
 
@@ -176,13 +178,19 @@ class LinearInverse(nn.Module):
         x_stack = x.repeat([num_avg, 1, 1, 1])
 
         # run reconstruction
-        recon = self.forward(x_stack)
+        recon = self._run_recon(x_stack)
 
         # average over the stack
         recon_avg = recon.reshape([num_avg, -1, *self.im_size])
         recon_avg = torch.mean(recon_avg, dim=0)
 
-        return recon_avg
+    def forward(self, x):
+        # average over multiple runs
+        if self.run_avg:
+            return self.average(x, num_avg=self.num_avg)
+
+        # return single sample
+        return self._run_recon(x)
 
 class LinearProjection(nn.Module):
     '''
