@@ -170,6 +170,20 @@ class LinearInverse(nn.Module):
         # run the reconstruction routine
         return self.inverse(msmt)
 
+    # average over multiple runs
+    def average(self, x, num_avg=2):
+        # make stacked copy of x
+        x_stack = x.repeat([num_avg, 1, 1, 1])
+
+        # run reconstruction
+        recon = self.forward(x_stack)
+
+        # average over the stack
+        recon_avg = recon.reshape([num_avg, -1, *self.im_size])
+        recon_avg = torch.mean(recon_avg, dim=0)
+
+        return recon_avg
+
 class LinearProjection(nn.Module):
     '''
     Linear projection with orthogonalized measurement matrix

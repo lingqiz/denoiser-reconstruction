@@ -86,11 +86,7 @@ def ln_optim(solver, loss, train, test, batch_size=200, n_epoch=50,
             batch = batch.permute(0, 3, 1, 2).contiguous().to(DEVICE)
 
             # run reconstruction using (two) sample average
-            image_sum = torch.zeros_like(batch)
-            for _ in range(num_avg):
-                image_sum += solver(batch)
-
-            recon = image_sum / num_avg
+            recon = solver.average(batch, num_avg=num_avg)
             error = loss(recon, batch)
 
             # optim step
