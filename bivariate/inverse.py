@@ -103,7 +103,7 @@ class LinearInverse(nn.Module):
         # init variables
         proj = M_T(m)
         n = torch.numel(proj[0])
-        y = torch.randn_like(proj) * 0.16 + proj
+        y = torch.randn_like(proj) + proj
         scale = np.sqrt((1 - self.beta * self.h) ** 2
                         - (1 - self.h) ** 2)
 
