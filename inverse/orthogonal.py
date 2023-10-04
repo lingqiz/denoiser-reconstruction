@@ -184,6 +184,8 @@ class LinearInverse(nn.Module):
         recon_avg = recon.reshape([num_avg, -1, *self.im_size])
         recon_avg = torch.mean(recon_avg, dim=0)
 
+        return recon_avg
+
     def forward(self, x):
         # average over multiple runs
         if self.run_avg:
