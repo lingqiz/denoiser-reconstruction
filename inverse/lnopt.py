@@ -159,7 +159,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
 
     # wrap the model in DataParallel
     solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
-    solver.max_t = 60
+    solver.max_t = 100
     solver_gpu = torch.nn.DataParallel(solver)
 
     # test with PCA for baseline performance
