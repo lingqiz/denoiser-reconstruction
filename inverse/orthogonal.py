@@ -4,6 +4,25 @@ import torch.nn.utils.parametrizations as para
 import torch, numpy as np
 import torch.nn as nn
 
+def batch_recon(x, solver, batch_size=32):
+    '''
+    Split input into multiple batches and run reconstruction
+    '''
+    # split input into batches
+    x_split = torch.split(x, batch_size, dim=0)
+
+    for i, x_batch in enumerate(x_split):
+        # run reconstruction
+        recon_batch = solver(x_batch)
+
+        # save results
+        if i == 0:
+            recon = recon_batch
+        else:
+            recon = torch.cat([recon, recon_batch], dim=0)
+
+    return recon
+
 class OrthMatrix(RenderMatrix):
     """
     Define a measurement matrix that is orthgonal
