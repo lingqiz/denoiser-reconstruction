@@ -13,7 +13,8 @@ def batch_recon(x, solver, batch_size=32):
 
     for i, x_batch in enumerate(x_split):
         # run reconstruction
-        recon_batch = solver(x_batch)
+        with torch.no_grad():
+            recon_batch = solver(x_batch)
 
         # save results
         if i == 0:
