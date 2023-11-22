@@ -31,6 +31,7 @@ def train(args):
         os.environ['MASTER_PORT'] = '12355'
 
         args.seed = randint(0, 65535)
+        mp.set_start_method('spawn')
         mp.spawn(train_parallel, nprocs=world_size,
         args=(world_size, train_set, test_set, args))
 
