@@ -60,18 +60,18 @@ def parse_args():
     # see dataset.py for parameters for individual dataset
     parser.add_argument('--data_path',
                         type=str,
-                        default='islvrc')
+                        default='celeba')
     parser.add_argument('--linear',
                         type=bool,
                         default=True)
     parser.add_argument('--patch_size',
-                        default=None)
+                        default=[50, 40])
     parser.add_argument('--test_size',
-                        default=None)
+                        default=[50, 40])
     parser.add_argument('--scales',
-                        default=None)
+                        default=[0.23])
     parser.add_argument('--test_scale',
-                        default=None)
+                        default=[0.23])
 
     # network architecture
     parser.add_argument('--padding',
