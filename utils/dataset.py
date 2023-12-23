@@ -113,15 +113,7 @@ class DataFromFile(DataSet):
                 setattr(args, key, self.DATASET_PARA[args.data_path][idx])
 
     # read images under the specified directory
-    def __init__(self, args, test_mode=False):
-        self.__init_para(args)
-
-        self.train_folder = os.path.join('utils', 'dataset', args.data_path, 'train')
-        self.test_folder = os.path.join('utils', 'dataset', args.data_path, 'test')
-
-        self.test_images = []
-        self.linear = args.linear
-        
+    def __init__(self, args, test_mode=False):        
         # load the resized celeba dataset from npy file
         if args.data_path == 'celeba_resize':
             npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_resize.npy')
@@ -129,6 +121,15 @@ class DataFromFile(DataSet):
                 self.train_patches = np.load(fl)
                 self.test_patches = np.load(fl)
             return
+        
+        # load other dataset from file
+        self.__init_para(args)
+
+        self.train_folder = os.path.join('utils', 'dataset', args.data_path, 'train')
+        self.test_folder = os.path.join('utils', 'dataset', args.data_path, 'test')
+
+        self.test_images = []
+        self.linear = args.linear
 
         # sample individual patches for training
         self.train_patches = []
