@@ -127,8 +127,8 @@ class DataFromFile(DataSet):
             npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_resize.npy')
             with open(npy_path, 'rb') as fl:
                 self.train_patches = np.load(fl)
-                self.test_patches = np.load(fl)            
-            return            
+                self.test_patches = np.load(fl)
+            return
 
         # sample individual patches for training
         self.train_patches = []
