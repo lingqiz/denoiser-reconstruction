@@ -56,6 +56,9 @@ def parse_args():
     parser.add_argument('--save_path',
                         type=str,
                         default='./assets/model_para.pt')
+    parser.add_argument('--cont_train',
+                        type=bool,
+                        default=False)
 
     # see dataset.py for parameters for individual dataset
     parser.add_argument('--data_path',

@@ -133,8 +133,12 @@ def train_parallel(rank, world_size, train_set, test_set, args):
     # wrap the model with DDP
     # In DDP, the constructor, the forward pass,
     # and the backward pass are distributed synchronization points
-    model = Denoiser(args).to(rank)
-    model = DDP(model, device_ids=[rank])
+    model = Denoiser(args)
+    
+    # load model parameters if continue training
+    if args.cont_train:
+        model.load_state_dict(torch.load(args.save_path))      
+    model = DDP(model.to(rank), device_ids=[rank])
 
     # load training dataset
     data_sampler = DSP(train_set, world_size, rank, shuffle=True, seed=args.seed)
