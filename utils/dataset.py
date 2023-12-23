@@ -121,6 +121,14 @@ class DataFromFile(DataSet):
 
         self.test_images = []
         self.linear = args.linear
+        
+        # load the resized celeba dataset from npy file
+        if args.data_path == 'celeba_resize':
+            npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_resize.npy')
+            with open(npy_path, 'rb') as fl:
+                self.train_patches = np.load(fl)
+                self.test_patches = np.load(fl)            
+            return            
 
         # sample individual patches for training
         self.train_patches = []
