@@ -137,7 +137,9 @@ def train_parallel(rank, world_size, train_set, test_set, args):
     
     # load model parameters if continue training
     if args.cont_train:
-        model.load_state_dict(torch.load(args.save_path))      
+        print('load model parameters from %s' % args.save_path)
+        model.load_state_dict(torch.load(args.save_path))
+
     model = DDP(model.to(rank), device_ids=[rank])
 
     # load training dataset
