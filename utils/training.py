@@ -136,7 +136,7 @@ def train_parallel(rank, world_size, train_set, test_set, args):
     model = Denoiser(args)
     
     # load model parameters if continue training
-    if args.cont_train:
+    if args.cont_train and rank == 0:
         print('load model parameters from %s' % args.save_path)
         model.load_state_dict(torch.load(args.save_path))
 
