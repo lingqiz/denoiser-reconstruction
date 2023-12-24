@@ -39,7 +39,7 @@ def parse_args():
                         default=0.98)
     parser.add_argument('--decay_adam',
                         type=float,
-                        default=0.10)
+                        default=0.09)
     parser.add_argument('--bias_sd',
                         type=bool,
                         default=False)
@@ -56,22 +56,25 @@ def parse_args():
     parser.add_argument('--save_path',
                         type=str,
                         default='./assets/model_para.pt')
+    parser.add_argument('--cont_train',
+                        type=bool,
+                        default=False)
 
     # see dataset.py for parameters for individual dataset
     parser.add_argument('--data_path',
                         type=str,
-                        default='celeba')
+                        default='islvrc')
     parser.add_argument('--linear',
                         type=bool,
                         default=True)
     parser.add_argument('--patch_size',
-                        default=[50, 40])
+                        default=None)
     parser.add_argument('--test_size',
-                        default=[50, 40])
+                        default=None)
     parser.add_argument('--scales',
-                        default=[0.23])
+                        default=None)
     parser.add_argument('--test_scale',
-                        default=[0.23])
+                        default=None)
 
     # network architecture
     parser.add_argument('--padding',
