@@ -3,6 +3,7 @@ from torch.linalg import vector_norm as vnorm
 import torch.nn.utils.parametrizations as para
 import torch, numpy as np
 import torch.nn as nn
+import scipy.linalg as la
 
 def batch_recon(x, solver, batch_size=32):
     '''
@@ -230,9 +231,13 @@ class LinearProjection(nn.Module):
         linear = torch.nn.Linear(self.n_pixel, self.n_sample)
         self.linear = para.orthogonal(linear, orthogonal_map='householder')
 
+    def refresh(self):
+        self.mtx = self.linear.weight
+
     def forward(self, x):
         # measurement matrix
-        proj_mtx = self.linear.weight
+        self.refresh()
+        proj_mtx = self.mtx        
 
         # compute projection
         x_flat = x.transpose(2, 3).flatten(1)
@@ -240,3 +245,30 @@ class LinearProjection(nn.Module):
 
         new_shape = [-1, self.im_size[0], self.im_size[2], self.im_size[1]]
         return recon_flat.reshape(new_shape).transpose(2, 3)
+
+class LinearSequential(LinearProjection):
+    def __init__(self, n_sample, im_size, mtx):
+        '''
+        Initialize with a given measurement matrix of shape [k, n]
+        '''
+        super().__init__(n_sample, im_size)
+        self.linear = None
+                
+        # compute null space of shape [n, n - k]
+        null_space = torch.from_numpy(la.null_space(mtx)).float()    
+        self.null_space = torch.nn.Parameter(null_space, requires_grad=False)
+        self.mtx_base = torch.nn.Parameter(torch.from_numpy(mtx).float(), 
+                                           requires_grad=False)    
+        
+        # parameterization 
+        vector = torch.nn.Linear(self.null_space.shape[1], 1)
+        self.vector = para.orthogonal(vector, orthogonal_map='householder')
+
+        # compute measurement matrix
+        self.refresh()
+
+    def refresh(self):
+        # compute measurement matrix
+        vector = self.vector.weight
+        vec_new = self.null_space @ vector.t()
+        self.mtx = torch.cat([self.mtx_base, vec_new], dim=1)
