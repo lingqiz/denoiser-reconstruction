@@ -94,8 +94,8 @@ args = args()
 dict_args = vars(args)
 
 # load dataset settings
-keys = ['data_path', 'patch_size', 'test_size', 'scales',
-        'test_scale', 'model_path', 'padding', 'kernel_size']
+keys = ['data_path', 'patch_size', 'test_size', 'scales', 'test_scale',
+        'model_path', 'padding', 'kernel_size', 'num_layers']
 
 with open("data_config.json", "r") as fl:
     data = json.load(fl)
