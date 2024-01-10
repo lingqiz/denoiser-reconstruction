@@ -96,7 +96,7 @@ save_name = args.data_path
 paras = [args.n_sample, args.loss_type, args.batch_size,
             args.n_epoch, args.lr, args.decay_rate, args.pbar]
 
-if args.recon_method == 'denoiser':
+if args.recon_method == 'Denoiser':
     # load denoiser model
     model = Denoiser(args)
     model.load_state_dict(torch.load(args.model_path))
@@ -105,6 +105,6 @@ if args.recon_method == 'denoiser':
     # run optimization
     run_optim(train_set, test_torch, model, save_name, config_str, *paras)
 
-elif args.recon_method == 'linear':
+elif args.recon_method == 'Linear':
     # run optimization
     gnl_pca(train_set, test_torch, save_name, config_str, *paras)
