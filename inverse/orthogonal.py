@@ -246,16 +246,11 @@ class LinearProjection(nn.Module):
         new_shape = [-1, self.im_size[0], self.im_size[2], self.im_size[1]]
         return recon_flat.reshape(new_shape).transpose(2, 3)
 
-class LinearSequential(LinearProjection):
-    def __init__(self, n_sample, im_size, msmt_mtx):
+class Sequential():
+    def init_mtx(self, msmt_mtx):
         '''
         Initialize with a given measurement matrix of shape [k, n]
         '''
-        nn.Module.__init__(self)
-        self.im_size = im_size
-        self.n_pixel = np.prod(im_size)
-        self.n_sample = n_sample
-
         # compute null space of shape [n, n - k]
         null_space = scipy.linalg.null_space(msmt_mtx).T
         self.null_space = torch.nn.Parameter(torch.from_numpy(null_space).float(),
@@ -276,5 +271,27 @@ class LinearSequential(LinearProjection):
         msmt_new = vector @ self.null_space
         self.mtx = torch.cat([self.mtx_base, msmt_new], dim=0)
 
-    def forward(self, x):
-        return super().forward(x)
+class LinearSequential(Sequential, LinearProjection):
+    def __init__(self, n_sample, im_size, msmt_mtx):
+        '''
+        Initialize with a given measurement matrix of shape [k, n]
+        '''
+        LinearProjection.__init__(n_sample, im_size)
+        self.linear = None
+
+        # init parameterization
+        self.init_mtx(msmt_mtx)
+    
+class InverseSequential(Sequential, LinearInverse):
+    def __init__(self, n_sample, im_size, denoiser, msmt_mtx):
+        LinearInverse.__init__(n_sample, im_size, denoiser)
+        
+        self.linear = None
+        self.mtx = None
+
+        # init parameterization
+        self.init_mtx(msmt_mtx)
+
+    def assign(self, _):
+        # not implemented for the sequential parameterization 
+        raise NotImplementedError
