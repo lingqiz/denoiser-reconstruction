@@ -14,10 +14,10 @@ source recon/bin/activate
 # set parameter values
 MTD=Denoiser
 LST=MSE
-NLY=26
+NLY=20
 KNS=3
 PAD=1
-LNR=0.0001
+LNR=0.0002
 BSZ=64
 NEP=16
 
