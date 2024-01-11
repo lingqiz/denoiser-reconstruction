@@ -276,7 +276,7 @@ class LinearSequential(Sequential, LinearProjection):
         '''
         Initialize with a given measurement matrix of shape [k, n]
         '''
-        LinearProjection.__init__(n_sample, im_size)
+        LinearProjection.__init__(self, n_sample, im_size)
         self.linear = None
 
         # init parameterization
@@ -284,7 +284,7 @@ class LinearSequential(Sequential, LinearProjection):
     
 class InverseSequential(Sequential, LinearInverse):
     def __init__(self, n_sample, im_size, denoiser, msmt_mtx):
-        LinearInverse.__init__(n_sample, im_size, denoiser)
+        LinearInverse.__init__(self, n_sample, im_size, denoiser)
         
         self.linear = None
         self.mtx = None
