@@ -161,7 +161,7 @@ class DataFromFile(DataSet):
             return image / 255.0
 
 class CelebA(DataSet):
-    def __init__(self, args, from_numpy=False):
+    def __init__(self, from_numpy=False):
         # load the resized celeba dataset from npy file
         if from_numpy:
             npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_gray.npy')
