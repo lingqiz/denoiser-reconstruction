@@ -3,7 +3,7 @@ import warnings
 
 # sample from the implicit prior
 def sample_prior(model, init, h_init=0.01, beta=0.01, 
-                 sig_end=0.01, stride=10, fix_h=False):
+                 sig_end=0.005, stride=10, fix_h=False):
     '''
     h: step size of the gradient step
     beta: amount of injected noise

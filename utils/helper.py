@@ -146,8 +146,7 @@ def eval_denoiser(test, model, device='cpu'):
     return (psnr_in, psnr_out, sd_true, sd_est)
 
 # sample from a prior
-def plot_sample(model, beta, im_size, n_sample=25, mu=0.25, 
-                gamma=True, h_init=0.01, fix_h=False):
+def plot_sample(model, im_size, n_sample=25, mu=0.25, beta=0.01, h_init=0.01, fix_h=False):
     samples = []
     for idx in tqdm(range(n_sample)):
         init = mu + torch.randn(size=im_size)
@@ -155,12 +154,12 @@ def plot_sample(model, beta, im_size, n_sample=25, mu=0.25,
                         beta=beta, stride=0, fix_h=fix_h)[-1])
 
     edge = int(np.ceil(np.sqrt(n_sample)))
-    fig, axs = plt.subplots(edge, edge, figsize=(12, 12), sharex=True, sharey=True)
+    fig, axs = plt.subplots(edge, edge, figsize=(edge, edge), 
+                            sharex=True, sharey=True)
+
     for idx, ax in zip(range(n_sample), axs.flat):
         image = np.clip(samples[idx], 0, 1)
-        image = gamma_correct(image) if gamma else image
-
-        ax.imshow(image)
+        ax.imshow(image, cmap='gray')
         ax.axis('off')
 
     fig.tight_layout()
