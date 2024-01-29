@@ -186,7 +186,7 @@ class CelebA(DataSet):
                                    interpolation = cv2.INTER_AREA)
                 self.train_patches.append(image)
         
-        self.train_patches = np.stack(self.train_patches)
+        self.train_patches = np.stack(self.train_patches).astype(np.single)
         self.train_patches = np.mean(np.stack(self.train_patches), axis=3)
 
         N_TEST = 1000
