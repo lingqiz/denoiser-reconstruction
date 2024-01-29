@@ -59,6 +59,11 @@ def args():
     args, _ = parser.parse_known_args()
     return args
 
+# parse arguments
+# set file path to denoiser model
+args = args()
+args.model_path = './assets/' + args.model_path + '.pt'
+
 # load training and test set based on data_path name
 if args.data_path == 'celeba':
     data = CelebA(from_numpy=True)
@@ -74,10 +79,6 @@ test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
 save_name = args.data_path
 paras = [args.n_sample, args.loss_type, args.batch_size,
             args.n_epoch, args.lr, args.decay_rate, args.pbar]
-
-# setup model path to denoiser
-args = args()
-args.model_path = './assets/' + args.model_path + '.pt'
 
 # list all arguments and values
 config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
