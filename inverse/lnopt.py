@@ -154,7 +154,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
               loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
 
     # print relevant information and setups
-    run_name = './design/results/%d_%s_%s' % (n_sample, loss, save_name)
+    run_name = './olm_result/%d_%s_%s' % (n_sample, loss, save_name)
     im_size, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
 
     # wrap the model in DataParallel
