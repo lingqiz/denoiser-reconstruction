@@ -176,7 +176,7 @@ class CelebA(DataSet):
 
         # sample individual patches for training
         self.train_patches = []
-        for file_name in os.listdir(self.train_folder):
+        for file_name in tqdm(os.listdir(self.train_folder)):
             image = plt.imread(os.path.join(self.train_folder, file_name))
 
             if len(image.shape) == 3:
