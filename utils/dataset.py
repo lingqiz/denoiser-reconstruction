@@ -80,11 +80,7 @@ class DataSet:
     def load_dataset(args, test_mode=False):
         # mnist is loaded directly through torchvision
         if args.data_path == 'mnist':
-            return MNIST()
-        if args.data_path == 'artwork':
-            return SingleImage(args, test_mode)
-        if args.data_path == 'intrinsic':
-            return CGIntrinsic(test_mode)
+            return MNIST()       
         if args.data_path.startswith('npy_'):
             return NPYImage(args.data_path)
 
@@ -164,6 +160,41 @@ class DataFromFile(DataSet):
         else:
             return image / 255.0
 
+class CelebA(DataSet):
+    def __init__(self, args, from_numpy=False):
+        # load the resized celeba dataset from npy file
+        if from_numpy:
+            npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_gray.npy')
+            with open(npy_path, 'rb') as fl:
+                self.train_patches = np.load(fl)
+                self.test_patches = np.load(fl)
+            return
+        
+        # read images from file
+        self.train_folder = os.path.join('utils', 'dataset', 'celeba', 'train')
+        self.test_folder = os.path.join('utils', 'dataset', 'celeba', 'test')
+
+        # sample individual patches for training
+        self.train_patches = []
+        for file_name in os.listdir(self.train_folder):
+            image = plt.imread(os.path.join(self.train_folder, file_name))
+
+            if len(image.shape) == 3:
+                image = image / 255.0
+                image = image[29:-29, 9:-9] # crop to 160x160
+                image = cv2.resize(image, (80, 80),
+                                   interpolation = cv2.INTER_AREA)
+                self.train_patches.append(image)
+        
+        self.train_patches = np.stack(self.train_patches)
+        self.train_patches = np.mean(np.stack(self.train_patches), axis=3)
+
+        N_TEST = 1000
+        self.test_patches = self.train_patches[0:N_TEST, :]
+        self.train_patches = self.train_patches[N_TEST:, :]        
+
+        return
+
 class MNIST(DataSet):
     def __init__(self):
         # load MNIST dataset
@@ -182,9 +213,7 @@ class MNIST(DataSet):
         for sample in mnist:
             sample = sample.numpy()
 
-            image = np.empty([28, 28, 3])
-            image[sample == 0, :] = np.random.rand(3, )
-            image[sample != 0, :] = np.random.rand(3, )
+            image = np.reshape(sample, [28, 28, 1])                       
             image = cv2.resize(image, (32, 32))
 
             all_image.append(image.astype(np.single))
@@ -195,80 +224,6 @@ class MNIST(DataSet):
         n_test = 500
         self.test_patches = all_image[:n_test, :]
         self.train_patches = all_image[n_test:, :]
-
-class SingleImage(DataFromFile):
-    def __init__(self, args, test_mode=False):
-        DataFromFile.__init__(self, args, test_mode)
-
-        # make copies of the training set
-        self.train_patches = np.repeat(self.train_patches, repeats=100, axis=0)
-
-class CGIntrinsic(DataSet):
-    def __init__(self, test_mode=False):
-        self.N_TOTAL = 20160
-        self.N_TEST = 100
-        self.HEIGHT = 240
-        self.WIDTH = 360
-        self.CHANNEL = 4
-        self.CLIP_RANGE = (0.05, 150)
-
-        train_folder = os.path.join('utils', 'dataset', 'cg_intrinsic')
-        all_folders = sorted(os.listdir(train_folder))
-
-        if test_mode:
-            np.random.shuffle(all_folders)
-
-        all_image = np.zeros((self.N_TOTAL, self.HEIGHT,
-                    self.WIDTH, self.CHANNEL), dtype=np.float32)
-
-        total = self.N_TEST if test_mode else self.N_TOTAL
-        pbar = tqdm(total=total)
-
-        counter = 0
-        for folder_path in all_folders:
-            folder = os.path.join(train_folder, folder_path)
-            file_name = sorted(os.listdir(folder))
-            assert(len(file_name) % 3 == 0)
-
-            for idx in range(len(file_name) // 3):
-                # read in the image
-                mlt = plt.imread(os.path.join(folder, file_name[idx * 3]))
-                albedo = plt.imread(os.path.join(folder, file_name[idx * 3 + 1]))
-
-                # subsample
-                mlt = cv2.resize(mlt, (self.WIDTH, self.HEIGHT))
-                albedo = cv2.resize(albedo, (self.WIDTH, self.HEIGHT))
-
-                # compute shading
-                shade = np.divide(mlt, albedo, out=np.zeros_like(mlt),
-                                    where=(albedo != 0)).mean(axis=2)
-
-                # convert to the log counterpart
-                log_albedo = np.log((albedo * 10.0).clip(*self.CLIP_RANGE))
-                log_shade  = np.log((shade * 10.0).clip(*self.CLIP_RANGE))
-
-                # combine into one image
-                combined = np.concatenate([log_albedo,
-                            np.expand_dims(log_shade, axis=2)], axis=2)
-
-                all_image[counter] = combined.astype(np.float32)
-
-                # image counter
-                counter += 1
-                pbar.update()
-
-                # test dataset
-                if test_mode and counter >= self.N_TEST:
-                    pbar.close()
-                    self.test_patches = all_image[:self.N_TEST, :]
-                    return
-
-        # split into training and testing set
-        np.random.shuffle(all_image)
-        pbar.close()
-
-        self.test_patches = all_image[:self.N_TEST, :]
-        self.train_patches = all_image[self.N_TEST:, :]
 
 class NPYImage(DataSet):
     def __init__(self, data_path):
