@@ -14,9 +14,9 @@ source recon/bin/activate
 # set parameter values
 MTD=Denoiser
 LST=MSE
-LNR=0.001
-BSZ=64
-NEP=16
+BSZ=16
+NEP=10
+# LNR=0.001
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
                   --n_sample $NSP --data_path $DST --model_path $MDP \
