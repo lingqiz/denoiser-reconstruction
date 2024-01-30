@@ -84,7 +84,7 @@ class LinearInverse(nn.Module):
         # initialization image
         # default to the grand mean of around 0.45
         init_im = 0.45 * torch.ones([1, *self.im_size])
-        self.init_im = torch.Parameter(init_im, requires_grad=False)
+        self.init_im = nn.Parameter(init_im, requires_grad=False)
 
     def refresh(self):
         self.mtx = self.linear.weight
