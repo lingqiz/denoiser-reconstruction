@@ -166,8 +166,8 @@ class CelebA(DataSet):
         if from_numpy:
             npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_gray.npy')
             with open(npy_path, 'rb') as fl:
-                self.train_patches = np.load(fl).expand_dims(-1)
-                self.test_patches = np.load(fl).expand_dims(-1)
+                self.train_patches = np.expand_dims(np.load(fl), axis=-1)
+                self.test_patches = np.expand_dims(np.load(fl), axis=-1)
             return
 
         # read images from file
