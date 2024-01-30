@@ -81,6 +81,11 @@ class LinearInverse(nn.Module):
         self.run_avg = False
         self.num_avg = 2
 
+        # initialization image
+        # default to the grand mean of around 0.45
+        init_im = 0.45 * torch.ones([1, *self.im_size])
+        self.init_im = torch.Parameter(init_im, requires_grad=False)
+
     def refresh(self):
         self.mtx = self.linear.weight
 
@@ -132,11 +137,10 @@ class LinearInverse(nn.Module):
         M_T = self.recon
 
         # init variables
-        # TODO: use average image to initialize
         proj = M_T(msmt)
-        e = torch.ones_like(proj)
+        e = self.init_im.repeat([proj.shape[0], 1, 1, 1])
         n = torch.numel(e[0])
-        mu = e - M_T(M(e)) + proj
+        mu = (e - M_T(M(e))) + proj
         y = torch.randn_like(mu) + mu
         sigma = vnorm(self.log_grad(y),
                 dim=(1, 2, 3)) / np.sqrt(n)
