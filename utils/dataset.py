@@ -80,7 +80,7 @@ class DataSet:
     def load_dataset(args, test_mode=False):
         # mnist is loaded directly through torchvision
         if args.data_path == 'mnist':
-            return MNIST()       
+            return MNIST()
         if args.data_path.startswith('npy_'):
             return NPYImage(args.data_path)
 
@@ -109,7 +109,7 @@ class DataFromFile(DataSet):
                 setattr(args, key, self.DATASET_PARA[args.data_path][idx])
 
     # read images under the specified directory
-    def __init__(self, args, test_mode=False):        
+    def __init__(self, args, test_mode=False):
         # load the resized celeba dataset from npy file
         if args.data_path == 'celeba_resize':
             npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_resize.npy')
@@ -117,7 +117,7 @@ class DataFromFile(DataSet):
                 self.train_patches = np.load(fl)
                 self.test_patches = np.load(fl)
             return
-        
+
         # load other dataset from file
         self.__init_para(args)
 
@@ -166,10 +166,10 @@ class CelebA(DataSet):
         if from_numpy:
             npy_path = os.path.join('utils', 'dataset', 'celeba', 'celeba_gray.npy')
             with open(npy_path, 'rb') as fl:
-                self.train_patches = np.load(fl)
-                self.test_patches = np.load(fl)
+                self.train_patches = np.load(fl).expand_dims(-1)
+                self.test_patches = np.load(fl).expand_dims(-1)
             return
-        
+
         # read images from file
         self.train_folder = os.path.join('utils', 'dataset', 'celeba', 'train')
         self.test_folder = os.path.join('utils', 'dataset', 'celeba', 'test')
@@ -185,13 +185,13 @@ class CelebA(DataSet):
                 image = cv2.resize(image, (80, 80),
                                    interpolation = cv2.INTER_AREA)
                 self.train_patches.append(image)
-        
+
         self.train_patches = np.stack(self.train_patches).astype(np.single)
         self.train_patches = np.mean(np.stack(self.train_patches), axis=3)
 
         N_TEST = 1000
         self.test_patches = self.train_patches[0:N_TEST, :]
-        self.train_patches = self.train_patches[N_TEST:, :]        
+        self.train_patches = self.train_patches[N_TEST:, :]
 
         return
 
@@ -213,7 +213,7 @@ class MNIST(DataSet):
         for sample in mnist:
             sample = sample.numpy()
 
-            image = np.reshape(sample, [28, 28, 1])                       
+            image = np.reshape(sample, [28, 28, 1])
             image = cv2.resize(image, (32, 32))
 
             all_image.append(image.astype(np.single))
