@@ -53,7 +53,7 @@ class LinearInverse(nn.Module):
     This enables us to perform reconstruction on mini-batch and multi-GPU training.
     """
 
-    def __init__(self, n_sample, im_size, denoiser):
+    def __init__(self, n_sample, im_size, denoiser, init_im=None):
         super().__init__()
 
         # save variables
@@ -82,9 +82,11 @@ class LinearInverse(nn.Module):
         self.num_avg = 2
 
         # initialization image
-        # default to the grand mean of around 0.45
-        init_im = 0.45 * torch.ones([1, *self.im_size])
-        self.init_im = nn.Parameter(init_im, requires_grad=False)
+        if init_im is None:
+            # default to the grand mean of around 0.45
+            init_im = 0.45 * torch.ones([*self.im_size])
+
+        self.init_im = nn.Parameter(init_im.unsqueeze(0), requires_grad=False)
 
     def refresh(self):
         self.mtx = self.linear.weight

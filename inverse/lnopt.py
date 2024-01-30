@@ -131,6 +131,7 @@ def optim_init(run_name, config_str, train_set, test_torch, loss):
 
     # image and dataset size
     im_size = test_torch.size()[1:]
+    avg_im = torch.mean(train_set, dim=0).permute([2, 0, 1])
     logging.info('# Training Data: %d' % train_set.shape[0])
     logging.info('# Test Data: %d \n' % test_torch.shape[0])
 
@@ -148,17 +149,17 @@ def optim_init(run_name, config_str, train_set, test_torch, loss):
                     reduction='sum', betas=(0.347, 0.366, 0.287)).to(DEVICE)
         loss = lambda pred, target: -ms_ssim(pred, target)
 
-    return im_size, loss
+    return im_size, avg_im, loss
 
 def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
               loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
 
     # print relevant information and setups
     run_name = './olm_result/%d_%s_%s' % (n_sample, loss, save_name)
-    im_size, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
+    im_size, avg_im, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
 
     # wrap the model in DataParallel
-    solver = LinearInverse(n_sample, im_size, denoiser).to(DEVICE)
+    solver = LinearInverse(n_sample, im_size, denoiser, avg_im).to(DEVICE)
     solver.max_t = 100
     solver.run_avg= True
     solver_gpu = torch.nn.DataParallel(solver)
@@ -170,7 +171,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
     # denoiser reconstruction with PCA matrix
-    solver_pca = LinearInverse(n_sample, im_size, denoiser).to(DEVICE).assign(pca_mtx)
+    solver_pca = LinearInverse(n_sample, im_size, denoiser, avg_im).to(DEVICE).assign(pca_mtx)
     mse_val, ssim_val, mssim_val, psnr_val, denoiser_recon = recon_avg(test_torch, solver_pca)
     logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
                                 (mse_val, ssim_val, mssim_val, psnr_val))
@@ -202,7 +203,7 @@ def gnl_pca(train_set, test_torch, save_name, config_str, n_sample,
 
     # print relevant information and setups
     run_name = './design/results/PCA_%d_%s_%s' % (n_sample, loss, save_name)
-    im_size, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
+    im_size, _, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
 
     # wrap the linear projection module in DataParallel
     solver = LinearProjection(n_sample, im_size).to(DEVICE)
