@@ -132,10 +132,11 @@ class LinearInverse(nn.Module):
         M_T = self.recon
 
         # init variables
+        # TODO: use average image to initialize
         proj = M_T(msmt)
         e = torch.ones_like(proj)
         n = torch.numel(e[0])
-        mu = 0.5 * (e - M_T(M(e))) + proj
+        mu = e - M_T(M(e)) + proj
         y = torch.randn_like(mu) + mu
         sigma = vnorm(self.log_grad(y),
                 dim=(1, 2, 3)) / np.sqrt(n)
@@ -281,11 +282,11 @@ class LinearSequential(Sequential, LinearProjection):
 
         # init parameterization
         self.init_mtx(msmt_mtx)
-    
+
 class InverseSequential(Sequential, LinearInverse):
     def __init__(self, n_sample, im_size, denoiser, msmt_mtx):
         LinearInverse.__init__(self, n_sample, im_size, denoiser)
-        
+
         self.linear = None
         self.mtx = None
 
@@ -293,5 +294,5 @@ class InverseSequential(Sequential, LinearInverse):
         self.init_mtx(msmt_mtx)
 
     def assign(self, _):
-        # not implemented for the sequential parameterization 
+        # not implemented for the sequential parameterization
         raise NotImplementedError

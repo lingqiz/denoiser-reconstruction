@@ -190,8 +190,8 @@ class CelebA(DataSet):
         self.train_patches = np.mean(np.stack(self.train_patches), axis=3)
 
         N_TEST = 1000
-        self.test_patches = self.train_patches[0:N_TEST, :]
-        self.train_patches = self.train_patches[N_TEST:, :]
+        self.test_patches = np.expand_dims(self.train_patches[0:N_TEST, :], axis=3)
+        self.train_patches = np.expand_dims(self.train_patches[N_TEST:, :], axis=3)
 
         return
 
