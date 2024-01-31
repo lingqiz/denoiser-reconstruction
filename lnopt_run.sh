@@ -16,7 +16,7 @@ MTD=Denoiser
 LST=MSE
 BSZ=64
 NEP=10
-# LNR=0.001
+LNR=0.0002
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
                   --n_sample $NSP --data_path $DST --model_path $MDP \
