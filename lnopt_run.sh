@@ -12,6 +12,8 @@ module load python/3.10 cuda cudnn nccl
 source recon/bin/activate
 
 # set parameter values
+# (add --avg $AVG to use average of multiple samples)
+
 MTD=Denoiser
 LST=MSE
 BSZ=64

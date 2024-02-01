@@ -49,6 +49,9 @@ def args():
     parser.add_argument('--data_path',
                         type=str,
                         default='celeba')
+    parser.add_argument('--avg',
+                        type=bool,
+                        default=False)
 
     # denoiser network
     parser.add_argument('--model_path',
@@ -77,8 +80,8 @@ test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
 
 # setup save name
 save_name = args.data_path
-paras = [args.n_sample, args.loss_type, args.batch_size,
-            args.n_epoch, args.lr, args.decay_rate, args.pbar]
+paras = [args.n_sample, args.loss_type, args.batch_size, args.n_epoch,
+         args.lr, args.decay_rate, args.pbar, args.avg]
 
 # list all arguments and values
 config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
