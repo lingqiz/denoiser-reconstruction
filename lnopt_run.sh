@@ -16,10 +16,11 @@ source recon/bin/activate
 
 MTD=Denoiser
 LST=MSE
-BSZ=128
+BSZ=32
 NEP=10
 LNR=0.0002
+AVG=true
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
                   --n_sample $NSP --data_path $DST --model_path $MDP \
-                  --lr $LNR --batch_size $BSZ --n_epoch $NEP
+                  --lr $LNR --batch_size $BSZ --n_epoch $NEP --avg $AVG

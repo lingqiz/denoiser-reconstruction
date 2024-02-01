@@ -41,7 +41,7 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     recon_numpy = recon_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
     return mtx, mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def recon_avg(test_torch, solver, num_avg=6):
+def recon_avg(test_torch, solver, num_avg=5):
     with torch.no_grad():
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
@@ -162,6 +162,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     solver = LinearInverse(n_sample, im_size, denoiser, avg_im).to(DEVICE)
     solver.max_t = 100
     solver.run_avg = avg
+    solver.num_avg = 5
     solver_gpu = torch.nn.DataParallel(solver)
 
     # test with PCA for baseline performance
