@@ -19,7 +19,7 @@ LST=MSE
 BSZ=32
 NEP=10
 LNR=0.0002
-AVG=false
+AVG=true
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
                   --n_sample $NSP --data_path $DST --model_path $MDP \
