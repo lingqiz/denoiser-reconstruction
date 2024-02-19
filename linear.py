@@ -1,7 +1,7 @@
 import argparse
 import torch
 import numpy as np
-from utils.dataset import DataSet, CelebA
+from utils.dataset import CelebA, Texture
 from models.unet import init_UNet
 from inverse.lnopt import run_optim, gnl_pca
 
@@ -74,6 +74,11 @@ if args.data_path == 'celeba':
 
     N_TEST = 256
     test_set = data.test_set()[:N_TEST]
+
+elif args.data_path == 'texture':
+    data = Texture()
+    train_set = data.train_set()
+    test_set = data.test_set()
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
