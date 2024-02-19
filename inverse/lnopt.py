@@ -41,7 +41,7 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     recon_numpy = recon_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
     return mtx, mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def recon_avg(test_torch, solver, num_avg=6):
+def recon_avg(test_torch, solver, num_avg=5):
     with torch.no_grad():
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
@@ -151,8 +151,8 @@ def optim_init(run_name, config_str, train_set, test_torch, loss):
 
     return im_size, avg_im, loss
 
-def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
-              loss='MSE', batch_size=200, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False):
+def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, loss='MSE',
+              batch_size=128, n_epoch=75, lr=1e-3, gamma=0.95, show_bar=False, avg=False):
 
     # print relevant information and setups
     run_name = './olm_result/%d_%s_%s' % (n_sample, loss, save_name)
@@ -161,7 +161,8 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
     # wrap the model in DataParallel
     solver = LinearInverse(n_sample, im_size, denoiser, avg_im).to(DEVICE)
     solver.max_t = 100
-    solver.run_avg= True
+    solver.run_avg = avg
+    solver.num_avg = 5
     solver_gpu = torch.nn.DataParallel(solver)
 
     # test with PCA for baseline performance
@@ -194,8 +195,8 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample,
 
     return save_vars
 
-def gnl_pca(train_set, test_torch, save_name, config_str, n_sample,
-            loss='MSE', batch_size=2048, n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False):
+def gnl_pca(train_set, test_torch, save_name, config_str, n_sample, loss='MSE',
+            batch_size=2048, n_epoch=50, lr=1e-3, gamma=0.95, show_bar=False, avg=False):
     '''
     A generalized PCA methods that can take different loss function,
     in addtion to the standard MSE (i.e., max variance) objective

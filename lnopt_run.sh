@@ -12,12 +12,15 @@ module load python/3.10 cuda cudnn nccl
 source recon/bin/activate
 
 # set parameter values
+# (add --avg $AVG to use average of multiple samples)
+
 MTD=Denoiser
 LST=MSE
-BSZ=64
+BSZ=32
 NEP=10
 LNR=0.0002
+AVG=true
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
                   --n_sample $NSP --data_path $DST --model_path $MDP \
-                  --lr $LNR --batch_size $BSZ --n_epoch $NEP
+                  --lr $LNR --batch_size $BSZ --n_epoch $NEP --avg $AVG
