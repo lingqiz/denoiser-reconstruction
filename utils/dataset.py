@@ -195,6 +195,18 @@ class CelebA(DataSet):
 
         return
 
+class Texture(DataSet):
+    def __init__(self, num_class=2):
+        # load the resized celeba dataset from npy file
+        npy_path = os.path.join('utils', 'dataset', 'texture', 'texture_%dc.npy')
+        npy_path = npy_path % num_class
+
+        with open(npy_path, 'rb') as fl:
+            self.train_patches = np.load(fl)
+            self.test_patches = np.load(fl)
+
+        return
+
 class MNIST(DataSet):
     def __init__(self):
         # load MNIST dataset
