@@ -70,7 +70,7 @@ args.model_path = './assets/' + args.model_path + '.pt'
 # load training and test set based on data_path name
 if args.data_path == 'celeba':
     data = CelebA(from_numpy=True)
-    train_set = torch.from_numpy(data.train_set())
+    train_set = data.train_set()
 
     N_TEST = 256
     test_set = data.test_set()[:N_TEST]
@@ -80,6 +80,7 @@ elif args.data_path == 'texture':
     train_set = data.train_set()
     test_set = data.test_set()
 
+train_set = torch.from_numpy(train_set)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
 
