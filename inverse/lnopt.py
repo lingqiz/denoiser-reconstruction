@@ -43,18 +43,11 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
 
 def recon_avg(test_torch, solver, num_avg=5):
     with torch.no_grad():
-        # save original n_avg parameter
-        n_avg = solver.module.num_avg
-        solver.module.num_avg = 1
-
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
         for _ in range(num_avg):
             image_sum += solver(test_torch)
         recon = image_sum / num_avg
-
-        # set back to original n_avg
-        solver.module.num_avg = n_avg
 
         # compute metric
         mse_val = MSE(test_torch, recon) / test_torch.shape[0]
@@ -114,7 +107,11 @@ def ln_optim(solver, loss, train, test, batch_size=200,
         scheduler.step()
 
         # compute performance on test set
+        # (turn off internal averaging)
+        avg_flag = solver.module.run_avg
+        solver.module.run_avg = False
         test_vals = recon_avg(test, solver)[:-1]
+        solver.module.run_avg = avg_flag
 
         # log training information
         logging.info('Epoch %d/%d' % (epoch + 1, n_epoch))
