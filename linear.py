@@ -76,7 +76,7 @@ if args.data_path == 'celeba':
     test_set = data.test_set()[:N_TEST]
 
 elif args.data_path == 'texture':
-    data = Texture()
+    data = Texture(num_class=2)
     train_set = data.train_set()
     test_set = data.test_set()
 
