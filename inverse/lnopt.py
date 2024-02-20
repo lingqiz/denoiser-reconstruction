@@ -44,8 +44,8 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
 def recon_avg(test_torch, solver, num_avg=5):
     with torch.no_grad():
         # save original n_avg parameter
-        n_avg = solver.num_avg
-        solver.num_avg = 1
+        n_avg = solver.module.num_avg
+        solver.module.num_avg = 1
 
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
@@ -54,7 +54,7 @@ def recon_avg(test_torch, solver, num_avg=5):
         recon = image_sum / num_avg
 
         # set back to original n_avg
-        solver.num_avg = n_avg
+        solver.module.num_avg = n_avg
 
         # compute metric
         mse_val = MSE(test_torch, recon) / test_torch.shape[0]
