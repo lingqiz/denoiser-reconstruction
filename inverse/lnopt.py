@@ -167,7 +167,6 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     solver.max_t = 100
     solver.run_avg = avg
     solver.num_avg = 5
-    solver_gpu = torch.nn.DataParallel(solver)
 
     # test with PCA for baseline performance
     pca_mtx, mse_val, ssim_val, mssim_val, psnr_val, pca_recon = \
@@ -182,6 +181,9 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
     # run optimization
+    # optional: initialize with PCA
+    solver.assign(pca_mtx)
+    solver_gpu = torch.nn.DataParallel(solver)
     batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
                                       batch_size=batch_size, n_epoch=n_epoch,
                                       lr=lr, gamma=gamma, show_bar=show_bar)
