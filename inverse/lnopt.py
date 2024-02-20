@@ -180,9 +180,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
-    # run optimization, wrap the model in DataParallel
-    # optional: initialize with PCA
-    solver.assign(pca_mtx)
+    # run optimization, wrap the model in DataParallel    
     solver_gpu = torch.nn.DataParallel(solver)
     batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
                                       batch_size=batch_size, n_epoch=n_epoch,
