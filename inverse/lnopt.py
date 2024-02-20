@@ -162,7 +162,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     run_name = './olm_result/%d_%s_%s' % (n_sample, loss, save_name)
     im_size, avg_im, loss = optim_init(run_name, config_str, train_set, test_torch, loss)
 
-    # wrap the model in DataParallel
+    # init linear inverse
     solver = LinearInverse(n_sample, im_size, denoiser, avg_im).to(DEVICE)
     solver.max_t = 100
     solver.run_avg = avg
@@ -180,7 +180,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
-    # run optimization
+    # run optimization, wrap the model in DataParallel
     # optional: initialize with PCA
     solver.assign(pca_mtx)
     solver_gpu = torch.nn.DataParallel(solver)
