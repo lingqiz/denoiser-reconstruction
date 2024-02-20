@@ -18,7 +18,7 @@ MTD=Denoiser
 LST=MSE
 BSZ=32
 NEP=10
-LNR=0.0002
+LNR=0.00005
 AVG=true
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
