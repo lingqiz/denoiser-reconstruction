@@ -1,7 +1,7 @@
 import argparse
 import torch
 import numpy as np
-from utils.dataset import CelebA, Texture
+from utils.dataset import CelebA, Texture, CIFAR
 from models.unet import init_UNet
 from inverse.lnopt import run_optim, gnl_pca
 
@@ -80,6 +80,11 @@ elif args.data_path == 'texture':
     train_set = data.train_set()
     test_set = data.test_set()
 
+elif args.data_path == 'cifar':
+    data = CIFAR()
+    train_set = data.train_set()
+    test_set = data.test_set()
+
 train_set = torch.from_numpy(train_set)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
@@ -98,7 +103,12 @@ config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
 
 if args.recon_method == 'Denoiser':
     # load denoiser model
-    model = init_UNet()
+    # use smaller number of blocks for CIFAR
+    num_blocks = 3
+    if args.data_path == 'cifar':
+        num_blocks = 2
+
+    model = init_UNet({'num_blocks':num_blocks})
     model.load_state_dict(torch.load(args.model_path))
     model = model.eval()
 
