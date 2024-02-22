@@ -206,6 +206,15 @@ class Texture(DataSet):
             self.test_patches = np.load(fl)
 
         return
+    
+class CIFAR(DataSet):
+    def __init__(self):
+        npy_path = os.path.join('utils', 'dataset', 'cifar10', 'cifar10.npy')
+        with open(npy_path, 'rb') as fl:
+            self.train_patches = np.load(fl)
+            self.test_patches = np.load(fl)
+
+        return
 
 class MNIST(DataSet):
     def __init__(self):
