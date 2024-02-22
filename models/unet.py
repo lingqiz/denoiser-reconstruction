@@ -25,8 +25,8 @@ def init_UNet(new_args=None):
     args = parser.parse_args('')
 
     if new_args is not None:  # update args with given args
-        for key, value in vars(new_args).items():
-            vars(args)[key] = value
+        for key, value in new_args.items():
+            args[key] = value
 
     model = UNet(args)
 
