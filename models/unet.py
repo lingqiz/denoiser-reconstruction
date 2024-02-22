@@ -26,7 +26,7 @@ def init_UNet(new_args=None):
 
     if new_args is not None:  # update args with given args
         for key, value in new_args.items():
-            args[key] = value
+            vars(args)[key] = value
 
     model = UNet(args)
 
