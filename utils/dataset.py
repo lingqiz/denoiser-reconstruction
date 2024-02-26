@@ -237,7 +237,10 @@ class MNIST(DataSet):
             all_image.append(image.astype(np.single))
 
         all_image = np.stack(all_image)
-        np.random.shuffle(all_image)
+
+        # random shuffle
+        rng = np.random.default_rng(seed=0)
+        rng.shuffle(all_image, axis=0)
 
         n_test = 512
         self.test_patches = all_image[:n_test, :]
