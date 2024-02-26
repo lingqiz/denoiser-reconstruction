@@ -1,7 +1,7 @@
 import argparse
 import torch
 import numpy as np
-from utils.dataset import CelebA, Texture, CIFAR
+from utils.dataset import CelebA, Texture, CIFAR, MNIST
 from models.unet import init_UNet
 from inverse.lnopt import run_optim, gnl_pca
 
@@ -76,12 +76,17 @@ if args.data_path == 'celeba':
     test_set = data.test_set()[:N_TEST]
 
 elif args.data_path == 'texture':
-    data = Texture(num_class=10)
+    data = Texture(class_name='all')
     train_set = data.train_set()
     test_set = data.test_set()
 
 elif args.data_path == 'cifar':
     data = CIFAR()
+    train_set = data.train_set()
+    test_set = data.test_set()
+
+elif args.data_path == 'mnist':
+    data = MNIST()
     train_set = data.train_set()
     test_set = data.test_set()
 

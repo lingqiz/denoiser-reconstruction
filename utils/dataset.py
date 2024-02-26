@@ -229,20 +229,17 @@ class MNIST(DataSet):
 
         mnist = torch.cat([train, test])
 
-        # make them color images
+        # reshape
         all_image = []
         for sample in mnist:
             sample = sample.numpy()
-
             image = np.reshape(sample, [28, 28, 1])
-            image = cv2.resize(image, (32, 32))
-
             all_image.append(image.astype(np.single))
 
         all_image = np.stack(all_image)
         np.random.shuffle(all_image)
 
-        n_test = 500
+        n_test = 512
         self.test_patches = all_image[:n_test, :]
         self.train_patches = all_image[n_test:, :]
 
