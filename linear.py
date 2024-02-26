@@ -108,10 +108,11 @@ config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
 
 if args.recon_method == 'Denoiser':
     # load denoiser model
-    # use smaller number of blocks for CIFAR
-    num_blocks = 3
-    if args.data_path == 'cifar':
+    # use smaller number of blocks for CIFAR or MNIST dataset
+    if args.data_path == 'cifar' or args.data_path == 'mnist':
         num_blocks = 2
+    else:
+        num_blocks = 3
 
     model = init_UNet({'num_blocks':num_blocks})
     model.load_state_dict(torch.load(args.model_path))
