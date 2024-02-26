@@ -229,10 +229,10 @@ class MNIST(DataSet):
 
         mnist = torch.cat([train, test])
 
-        # reshape
+        # reshape and normalize
         all_image = []
         for sample in mnist:
-            sample = sample.numpy()
+            sample = sample.numpy() / 255.0
             image = np.reshape(sample, [28, 28, 1])
             all_image.append(image.astype(np.single))
 
