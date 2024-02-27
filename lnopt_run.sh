@@ -16,9 +16,9 @@ source recon/bin/activate
 
 MTD=Denoiser
 LST=MSE
-BSZ=128
+BSZ=64
 NEP=32
-LNR=0.001
+LNR=0.0005
 AVG=true
 
 python3 linear.py --recon_method $MTD --loss_type $LST \
