@@ -221,13 +221,14 @@ class MNIST(DataSet):
         # load MNIST dataset
         train = torchvision.datasets.MNIST('./utils/dataset', train=True, download=True,
                              transform=torchvision.transforms.Compose([
-                               torchvision.transforms.ToTensor()])).data
+                               torchvision.transforms.ToTensor()]))
 
         test = torchvision.datasets.MNIST('./utils/dataset', train=False, download=True,
                              transform=torchvision.transforms.Compose([
-                               torchvision.transforms.ToTensor()])).data
+                               torchvision.transforms.ToTensor()]))
 
-        mnist = torch.cat([train, test])
+        mnist = torch.cat([train.data, test.data])
+        target = torch.cat([train.targets, test.targets])
 
         # reshape and normalize
         all_image = []
@@ -242,9 +243,16 @@ class MNIST(DataSet):
         rng = np.random.default_rng(seed=0)
         rng.shuffle(all_image, axis=0)
 
+        rng = np.random.default_rng(seed=0)
+        rng.shuffle(target, axis=0)
+
+        # split into training and testing set
         n_test = 512
         self.test_patches = all_image[:n_test, :]
         self.train_patches = all_image[n_test:, :]
+
+        self.test_label = target[:n_test]
+        self.train_label = target[n_test:]
 
 class NPYImage(DataSet):
     def __init__(self, data_path):
