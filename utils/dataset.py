@@ -228,7 +228,7 @@ class MNIST(DataSet):
                                torchvision.transforms.ToTensor()]))
 
         mnist = torch.cat([train.data, test.data])
-        target = torch.cat([train.targets, test.targets])
+        target = torch.cat([train.targets, test.targets]).numpy()
 
         # reshape and normalize
         all_image = []
