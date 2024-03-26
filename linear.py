@@ -86,8 +86,8 @@ elif args.data_path == 'cifar':
     test_set = data.test_set()
 
 elif args.data_path == 'mnist':
-    # run on digit 4
-    DIGIT = 4
+    # run on single digit
+    DIGIT = 7
 
     data = MNIST()
     train_set = data.train_set()
