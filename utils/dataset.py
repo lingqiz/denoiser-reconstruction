@@ -254,6 +254,13 @@ class MNIST(DataSet):
         self.test_label = target[:n_test]
         self.train_label = target[n_test:]
 
+    def select_digit(self, digit):
+        # select only a single digit
+        self.train_patches = self.train_patches[self.train_label == digit]
+        self.test_patches = self.test_patches[self.test_label == digit]
+
+        return
+
 class NPYImage(DataSet):
     def __init__(self, data_path):
         '''

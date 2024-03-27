@@ -87,18 +87,14 @@ elif args.data_path == 'cifar':
 
 elif args.data_path == 'mnist':
     # run on single digit
-    DIGIT = 7
+    DIGIT = None
 
     data = MNIST()
+    if DIGIT is not None:
+        data.select_digit(DIGIT)
+
     train_set = data.train_set()
     test_set = data.test_set()
-
-    train_label = data.train_label
-    test_label = data.test_label
-
-    # select only a single digit
-    train_set = train_set[train_label == DIGIT]
-    test_set = test_set[test_label == DIGIT]
 
 train_set = torch.from_numpy(train_set)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
