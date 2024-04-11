@@ -12,6 +12,7 @@ from torchmetrics import MultiScaleStructuralSimilarityIndexMeasure as MetricMS_
 from sklearn.decomposition import PCA
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
+NUM_AVG = 3
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MSE = nn.MSELoss(reduction='sum').to(DEVICE)
 SSIM = MetricSSIM(data_range=1.0, sigma=1.0).to(DEVICE)
@@ -41,7 +42,7 @@ def pca_projection(train_set, test_torch, n_sample, im_size):
     recon_numpy = recon_torch.permute([0, 2, 3, 1]).detach().cpu().numpy()
     return mtx, mse_val.item(), ssim_val.item(), mssim_val.item(), psnr_val, recon_numpy
 
-def recon_avg(test_torch, solver, num_avg=5):
+def recon_avg(test_torch, solver, num_avg=NUM_AVG):
     with torch.no_grad():
         # compute average reconstruction
         image_sum = torch.zeros_like(test_torch)
@@ -166,7 +167,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     solver = LinearInverse(n_sample, im_size, denoiser, avg_im).to(DEVICE)
     solver.max_t = 100
     solver.run_avg = avg
-    solver.num_avg = 5
+    solver.num_avg = NUM_AVG
 
     # test with PCA for baseline performance
     pca_mtx, mse_val, ssim_val, mssim_val, psnr_val, pca_recon = \
@@ -180,7 +181,7 @@ def run_optim(train_set, test_torch, denoiser, save_name, config_str, n_sample, 
     logging.info('Denoiser-PCA MSE %.3f, SSIM %.3f, MS-SSIM %.3f, PSNR %.3f \n' % \
                                 (mse_val, ssim_val, mssim_val, psnr_val))
 
-    # run optimization, wrap the model in DataParallel    
+    # run optimization, wrap the model in DataParallel
     solver_gpu = torch.nn.DataParallel(solver)
     batch_loss, epoch_loss = ln_optim(solver_gpu, loss, train_set, test_torch,
                                       batch_size=batch_size, n_epoch=n_epoch,
