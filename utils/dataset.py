@@ -283,6 +283,11 @@ class NPYImage(DataSet):
         self.train_patches = train.astype(np.float32)
 
 class Mixture(DataSet):
+
+    base_path = '/mnt/home/zkadkhodaie/ceph/21_hierarchical_conditional_prior/denoisers'
+    model_name = '/UNet_flex_with_bias_instanceNorm/half_bed_half_face/0to255_RF_98x98_set_size_140000/'
+    model_path = base_path + model_name
+
     def __init__(self):
         # load the mixture dataset from npy file
         npy_path = os.path.join('utils', 'dataset', 'mixture', 'celeba_bedroom_mixture.npy')

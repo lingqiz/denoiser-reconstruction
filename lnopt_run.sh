@@ -17,8 +17,8 @@ source recon/bin/activate
 MTD=Denoiser
 LST=MSE
 DCR=0.90
-BSZ=32
-NEP=32
+BSZ=64
+NEP=16
 LNR=0.0005
 AVG=true
 

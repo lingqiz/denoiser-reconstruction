@@ -1,8 +1,9 @@
 import argparse
 import torch
 import numpy as np
-from utils.dataset import CelebA, Texture, CIFAR, MNIST
+from utils.dataset import CelebA, Texture, CIFAR, MNIST, Mixture
 from models.unet import init_UNet
+from models.unet_flex import load_learned_model
 from inverse.lnopt import run_optim, gnl_pca
 
 def args():
@@ -96,6 +97,13 @@ elif args.data_path == 'mnist':
     train_set = data.train_set()
     test_set = data.test_set()
 
+elif args.data_path == 'mixture':
+    data = Mixture()
+
+    train_set = data.train_set()
+    test_set = data.test_set()
+    model_path = data.model_path
+
 train_set = torch.from_numpy(train_set)
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 test_torch = torch.tensor(test_set).permute([0, 3, 1, 2]).to(device)
@@ -115,14 +123,19 @@ config_str = ' '.join(f'{k}={v}' for k, v in vars(args).items())
 if args.recon_method == 'Denoiser':
     # load denoiser model
     # use smaller number of blocks for CIFAR or MNIST dataset
-    if args.data_path == 'cifar' or args.data_path == 'mnist':
-        num_blocks = 2
-    else:
-        num_blocks = 3
+    if args.data_path == 'mixture':
+        model = load_learned_model(model_path, print_args=False)
+        model = model.eval()
 
-    model = init_UNet({'num_blocks':num_blocks})
-    model.load_state_dict(torch.load(args.model_path))
-    model = model.eval()
+    else:
+        if args.data_path == 'cifar' or args.data_path == 'mnist':
+            num_blocks = 2
+        else:
+            num_blocks = 3
+
+        model = init_UNet({'num_blocks':num_blocks})
+        model.load_state_dict(torch.load(args.model_path))
+        model = model.eval()
 
     # run optimization
     run_optim(train_set, test_torch, model, save_name, config_str, *paras)
