@@ -281,3 +281,17 @@ class NPYImage(DataSet):
 
         self.test_patches = test.astype(np.float32)
         self.train_patches = train.astype(np.float32)
+
+class Mixture(DataSet):
+    def __init__(self):
+        # load the mixture dataset from npy file
+        npy_path = os.path.join('utils', 'dataset', 'celeba_bedroom_mixture.npy')
+        with open(npy_path, 'rb') as fl:
+            train = np.load(fl)
+            test = np.load(fl)
+
+            self.train_index = np.load(fl)
+            self.test_index = np.load(fl)
+
+        self.train_patches = train.astype(np.float32)
+        self.test_patches = test.astype(np.float32)
