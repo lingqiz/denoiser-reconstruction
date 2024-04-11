@@ -12,7 +12,7 @@ from torchmetrics import MultiScaleStructuralSimilarityIndexMeasure as MetricMS_
 from sklearn.decomposition import PCA
 from skimage.metrics import peak_signal_noise_ratio as psnr
 
-NUM_AVG = 3
+NUM_AVG = 2
 DEVICE = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 MSE = nn.MSELoss(reduction='sum').to(DEVICE)
 SSIM = MetricSSIM(data_range=1.0, sigma=1.0).to(DEVICE)
