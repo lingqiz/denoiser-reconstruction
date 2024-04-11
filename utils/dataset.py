@@ -285,7 +285,7 @@ class NPYImage(DataSet):
 class Mixture(DataSet):
     def __init__(self):
         # load the mixture dataset from npy file
-        npy_path = os.path.join('utils', 'dataset', 'celeba_bedroom_mixture.npy')
+        npy_path = os.path.join('utils', 'dataset', 'mixture', 'celeba_bedroom_mixture.npy')
         with open(npy_path, 'rb') as fl:
             train = np.load(fl)
             test = np.load(fl)
