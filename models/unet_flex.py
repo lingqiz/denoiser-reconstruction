@@ -201,6 +201,7 @@ def load_learned_model(folder_path, print_args=False):
         print('*************** saved arguments:*************')
         for key,v in arguments.items(): 
             print(key, v)
+
     parser = argparse.ArgumentParser(description='set CNN args')
 
     for k,v in arguments.items(): 
