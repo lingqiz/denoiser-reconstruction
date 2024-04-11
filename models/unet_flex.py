@@ -198,7 +198,7 @@ def load_learned_model(folder_path, print_args=False):
         arguments = pickle.load(openfile)
 
     if print_args:
-        print('*************** saved arguments:*************')
+        print('saved arguments: \n')
         for key,v in arguments.items():
             print(key, v)
 
@@ -213,7 +213,6 @@ def load_learned_model(folder_path, print_args=False):
         model = model.cuda()
 
     model = read_trained_params(model, folder_path + '/model.pt')
-    print('******************************************************')
     print('number of parameters is ' , sum(p.numel() for p in model.parameters() if p.requires_grad))
 
     model.eval()
