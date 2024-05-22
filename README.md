@@ -1,8 +1,6 @@
-## Image Reconstruction with Denoiser Implicit Prior
+## Optimized Linear Measurements for Inverse Problems
 
-Image reconstruction from cone excitations using the prior
-implicit in a convolutional neural network denoiser.  
-See [Kadkhodaie & Simoncelli, 2022](https://arxiv.org/abs/2007.13640) for the details of the method.
+README under construction.
 
 ### Installation
 ```
