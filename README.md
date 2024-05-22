@@ -1,6 +1,6 @@
 ## Optimized Linear Measurements for Inverse Problems
 
-README under construction.
+README currently under construction.
 
 ### Installation
 ```
