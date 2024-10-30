@@ -82,6 +82,9 @@ def k_sparse(n=1, length=0.5):
 
     return np.array(sample)
 
+'''
+1D manifold in 2D
+'''
 def manifold(n=1, freq=np.pi):
     seeds = np.random.rand(n) * 2 * np.pi
 
