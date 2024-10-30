@@ -81,3 +81,16 @@ def k_sparse(n=1, length=0.5):
         sample.append([x, y])
 
     return np.array(sample)
+
+def manifold(n=1, freq=np.pi):
+    seeds = np.random.rand(n) * 2 * np.pi
+
+    # Calculate frequency (fr)
+    fr = (freq / np.pi) * ((2 + np.cos(seeds)**1) / 2)  # cycles per radian
+
+    # Calculate radius (r)
+    r = np.ones_like(seeds) + 0.75 * np.cos(fr * seeds)
+    x = r * np.cos(seeds) * 0.75
+    y = r * np.sin(seeds) * 0.75
+
+    return np.array([x, y]).T
