@@ -96,4 +96,5 @@ def manifold(n=1, freq=np.pi):
     x = r * np.cos(seeds) * 0.75
     y = r * np.sin(seeds) * 0.75
 
-    return np.array([x, y]).T
+    manifold_sample = np.array([x, y]).T
+    return manifold_sample + np.random.normal(0, 0.005, manifold_sample.shape)
