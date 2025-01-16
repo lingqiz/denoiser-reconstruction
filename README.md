@@ -1,6 +1,8 @@
 ## Optimized Linear Measurements for Inverse Problems
 
-README currently under construction.
+Optimized compressed sensing for image reconstruction with diffusion probabilistic models
+Ling-Qi Zhang, Zahra Kadkhodaie, Eero P. Simoncelli, and David H. Brainard
+[https://arxiv.org/abs/2405.17456](https://arxiv.org/abs/2405.17456)
 
 ### Installation
 ```
@@ -9,8 +11,8 @@ source denoiser-recon/bin/activate
 pip install -r requirements.txt
 ```
 
-### SLURM command
+### Training (Cluster)
 ```
 sbatch train_run.sh
-sbatch --export=NSP=16,DST=dataset lnopt_run.sh 
+sbatch --export=NSP=16,DST=dataset lnopt_run.sh
 ```
